@@ -1,0 +1,250 @@
+#include <iostream>
+#include <windows.h>
+#include <conio.h>
+#include <cstdlib>
+#include <functional>
+#include <vector>
+
+using namespace std;
+
+struct Field {
+    string label;
+    int len;
+    char startRange, EndRange;
+
+    // void* is Pointer to Something we don't know what's it is yet
+    // what cast to specific type when you use it inside
+    // function<> allows you to store a function in a variable like PHP
+    function<void(void*, const char*)> setter;
+};
+
+void gotoxy(int x,int y);
+void textattr(int i);
+void showForm(void* object, vector<Field>& fields);
+void display(int nChar, char* arr, int cursor, int xPos, int yPos, int len);
+char** multiLineEditor(int* xPos, int* yPos, int* len, char* SR, char* ER, int N);
+
+// Generic Form to fill an Object
+void showForm(void* object, vector<Field>& fields) {
+    int n = fields.size();
+    const int labelX = 2;
+    const int inputX = 14;
+    const int startY = 1;
+
+    int* xPos = new int[n];
+    int* yPos = new int[n];
+    int* len  = new int[n];
+    char* SR  = new char[n];
+    char* ER  = new char[n];
+
+    system("cls");
+
+    for (int i = 0; i < n; ++i) {
+        int y = startY + i * 2;
+
+        gotoxy(labelX, y);
+        cout << fields[i].label;
+
+        xPos[i] = inputX;
+        yPos[i] = y;
+        len[i]  = fields[i].len;
+        SR[i]   = fields[i].startRange;
+        ER[i]   = fields[i].EndRange;
+    }
+
+    char** values = multiLineEditor(xPos, yPos, len, SR, ER, n);
+
+    for (int i = 0; i < n; ++i) {
+        fields[i].setter(object, values[i]);
+    }
+}
+
+void gotoxy(int x,int y)
+{
+    COORD coord={0,0};
+    coord.X=x;
+    coord.Y=y;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),coord);
+}
+
+void textattr(int i)
+{
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), i);
+}
+
+char** multiLineEditor(int* xPos, int* yPos, int* len, char* SR, char* ER, int N){
+    int index = 0;
+
+    char** str = new char*[N];
+    char** current = new char*[N];
+    char** first = new char*[N];
+    char** last = new char*[N];
+    int* cursor = new int[N]{};
+
+    for(int i = 0; i < N; ++i){
+        str[i] = new char[len[i] + 1];
+        current[i] = first[i] = last[i] = str[i];
+        display(0, nullptr, cursor[i], xPos[i], yPos[i], len[i]);
+    }
+
+    gotoxy(xPos[0], yPos[0]);
+    while(true){
+        char ch = getch();
+        switch(ch){
+        case -32:{
+            ch = getch();
+            switch(ch){
+            case 77: // Right Arrow
+                if (current[index] < last[index]){
+                    gotoxy(++cursor[index] + xPos[index], yPos[index]);
+                    ++current[index];
+                }
+                break;
+            case 75: // Left Arrow
+                if (current[index] > first[index])
+                {
+                    gotoxy(--cursor[index] + xPos[index], yPos[index]);
+                    --current[index];
+                }
+                break;
+            case 80: // Down Arrow
+                if (index < N - 1){
+                    index++;
+                    gotoxy(cursor[index] + xPos[index], yPos[index]);
+                }
+                break;
+            case 72: // Up Arrow
+                if (index > 0){
+                    index--;
+                    gotoxy(cursor[index] + xPos[index], yPos[index]);
+                }
+                break;
+            case 71: // Home Key
+                cursor[index] = 0;
+                gotoxy(cursor[index] + xPos[index], yPos[index]);
+                current[index] = first[index];
+                break;
+            case 79: // End Key
+                cursor[index] = last[index] - first[index];
+                gotoxy(cursor[index] + xPos[index], yPos[index]);
+                current[index] = last[index];
+                break;
+            case 83: // Delete
+                // AB|CD
+                // AB|D
+                if(current[index] < last[index]){
+                    memmove(current[index], current[index] + 1, last[index] - current[index] - 1);
+                    last[index]--;
+                }
+                display((last[index] - first[index]), str[index], cursor[index], xPos[index], yPos[index], len[index]);
+                break;
+            }
+            break;
+        }
+        case 8: // Backspace
+        {
+            // AB|CD
+            // A|CD
+            if(current[index] > first[index]){
+                if(current[index] != last[index]){
+                    memmove(current[index] - 1, current[index], last[index] - current[index]);
+                }
+                --cursor[index];
+                --current[index];
+                --last[index];
+                display((last[index] - first[index]), str[index], cursor[index], xPos[index], yPos[index], len[index]);
+            }
+            break;
+        }
+        case '\t':
+            if (index == N - 1){
+                index = 0;
+            } else if (index < N - 1){
+                ++index;
+            }
+            gotoxy(cursor[index] + xPos[index], yPos[index]);
+            break;
+        case '\r': { // Enter
+            for(int i = 0; i < N; ++i){
+                *last[i] = '\0';
+            }
+            return str;
+        }
+        default:
+            if((last[index] == &str[index][len[index]]) || ch > ER[index] || ch < SR[index]){
+                break;
+            }
+
+            if (current[index] < last[index]) {
+                // AB|CB
+                // ABD|CB
+                memmove(current[index] + 1, current[index], last[index] - current[index]);
+            }
+            // Else
+            // AB|
+            // ABC|
+            *current[index] = ch;
+            ++cursor[index];
+            // advance the pointers
+            ++current[index];
+            ++last[index];
+
+            display((last[index] - first[index]), str[index], cursor[index], xPos[index], yPos[index], len[index]);
+        }
+    }
+
+
+    return str;
+}
+
+void display(int nChar, char* str, int cursor, int xPos, int yPos, int len){
+    gotoxy(xPos, yPos);
+    textattr(0x071);
+    // Display nChar from str
+    printf("%.*s", nChar, str);
+    if (nChar < len)
+        // and Fill the gap with Spaces
+        cout << string(len - nChar, ' ');
+    textattr(0x007);
+    gotoxy(cursor + xPos, yPos);
+}
+
+
+// Example
+
+// struct Student {
+//     int id;
+//     char name[30];
+//     char grade;
+// };
+
+
+// int main()
+// {
+//     vector<Field> studentFields = {
+//         {
+//             "ID:",
+//             6, '0', '9',
+//             [](void* o, const char* v) {
+//                 ((Student*)o)->id = atoi(v);
+//             }
+//         },
+//         {
+//             "Name:",
+//             20, 'A', 'z',
+//             [](void* o, const char* v) {
+//                 strcpy(((Student*)o)->name, v);
+//             }
+//         },
+//         {
+//             "Grade:",
+//             1, 'A', 'F',
+//             [](void* o, const char* v) {
+//                 ((Student*)o)->grade = v[0];
+//             }
+//         }
+//     };
+
+//     Student s{};
+//     showForm(&s, studentFields);
+// }

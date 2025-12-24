@@ -3,6 +3,7 @@
 #include <string>
 #include <map>
 #include <memory> // For smart pointers (optional, but good practice)
+#include <algorithm>
 
 using namespace std;
 
@@ -86,12 +87,13 @@ public:
     int getId() const { return id; }
     // Helper to populate tickets
     void addTicket(Ticket t) { tickets.push_back(t); }
+
 };
 
 // ================= USER HIERARCHY =================
 
 class User {
-protected: // '#' in UML means protected
+protected: 
     string email;
     string password;
     char gender;
@@ -117,7 +119,7 @@ public:
 
 class Admin : public User {
 public:
-    // Note: The diagram links this to EventsVec, 
+    // Note: The diagram links this to EventManager, 
     // but implies Admin might manage instances directly.
     bool createEvent(); 
     bool addEvent(int eventId);
@@ -126,56 +128,132 @@ public:
 
 // ================= SINGLETON VECTORS (DATABASES) =================
 
-// Singleton Class for Fans
-class FanVec {
-private:
-    static FanVec* instance;
-    vector<Fan> fans;
-    FanVec() {} // Private Constructor
+// // Singleton Class for Fans
+// class FanManager {
+// private:
+//     vector<Fan> fans;
 
-public:
-    static FanVec& getInstance(); // Returns reference to singleton
-    void addFan(Fan fan);
-    const vector<Fan>& getFans() const;
-    Fan& getFan(int id);
-    int getNFan(); // Count
-};
+//     // Private constructor
+//     FanManager() = default;
+
+//     // Disable copy & assignment
+//     FanManager(const FanManager&) = delete;
+//     FanManager& operator=(const FanManager&) = delete;
+
+// public:
+//     static FanManager& getInstance() {
+//         static FanManager instance; // Magic Static
+//         return instance;
+//     }
+
+//     void addFan(const Fan& e) {
+//         fans.push_back(e);
+//     }
+
+//     const vector<Fan>& getFans() const {
+//         return fans;
+//     }
+
+//     Fan* getFan(int ID) {
+//         auto it = find_if(fans.begin(), fans.end(),
+//             [ID](Fan& e) {
+//                 return e.getId() == ID;
+//             }
+//         );
+
+//         if (it != fans.end())
+//             return &(*it);
+
+//         return nullptr;
+//     }
+// };
 
 // Singleton Class for Admins
-class AdminVec {
-private:
-    static AdminVec* instance;
-    vector<Admin> admins;
-    AdminVec() {}
+// class AdminManager {
+// private:
+//     vector<Admin> admins;
 
-public:
-    static AdminVec& getInstance();
-    void addAdmin(Admin admin);
-    const vector<Admin>& getAdmins() const;
-    Admin& getAdmin(int id);
-    int getNAdmin();
-};
+//     // Private constructor
+//     AdminManager() = default;
+
+//     // Disable copy & assignment
+//     AdminManager(const AdminManager&) = delete;
+//     AdminManager& operator=(const AdminManager&) = delete;
+
+// public:
+//     static AdminManager& getInstance() {
+//         static AdminManager instance; // Magic Static
+//         return instance;
+//     }
+
+//     void addAdmin(const Admin& e) {
+//         admins.push_back(e);
+//     }
+
+//     const vector<Admin>& getAdmins() const {
+//         return admins;
+//     }
+
+//     Admin* getAdmin(string email) {
+//         auto it = find_if(admins.begin(), admins.end(),
+//             [email](Admin& admin) {
+//                 return admin.getEmail() == email;
+//             }
+//         );
+
+//         if (it != admins.end())
+//             return &(*it);
+
+//         return nullptr;
+//     }
+// };
+
 
 // Singleton Class for Events
-class EventsVec {
-private:
-    static EventsVec* instance;
-    vector<Event> events;
-    EventsVec() {}
+// class EventManager {
+// private:
+//     vector<Event> events;
 
-public:
-    static EventsVec& getInstance();
-    void addEvent(Event event);
-    const vector<Event>& getEvents() const;
-    Event& getEvent(int id);
-    int getNEvents();
-};
+//     // Private constructor
+//     EventManager() = default;
+
+//     // Disable copy & assignment
+//     EventManager(const EventManager&) = delete;
+//     EventManager& operator=(const EventManager&) = delete;
+
+// public:
+//     static EventManager& getInstance() {
+//         static EventManager instance; // Magic Static
+//         return instance;
+//     }
+
+//     void addEvent(const Event& e) {
+//         events.push_back(e);
+//     }
+
+//     const vector<Event>& getEvents() const {
+//         return events;
+//     }
+
+//     Event* getEvent(int ID) {
+//         auto it = find_if(events.begin(), events.end(),
+//             [ID](Event& e) {
+//                 return e.getId() == ID;
+//             }
+//         );
+
+//         if (it != events.end())
+//             return &(*it);
+
+//         return nullptr;
+//     }
+// };
 
 // ================= SERVICES =================
 
 class AuthenticationService {
 public:
-    // Logic uses FanVec and AdminVec to verify credentials
+    // Logic uses FanManager and AdminManager to verify credentials
     bool login(string email, string password, UserType userType);
     bool registerUser(User user, UserType type); 
 };
@@ -264,11 +342,8 @@ public:
     bool logout();
 };
 
-// ================= STATIC INITIALIZATION =================
-// Singletons need their static members initialized in .cpp usually
-FanVec* FanVec::instance = nullptr;
-AdminVec* AdminVec::instance = nullptr;
-EventsVec* EventsVec::instance = nullptr;
+
+
 
 // ================= MAIN (ENTRY POINT) =================
 
