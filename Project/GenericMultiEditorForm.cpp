@@ -12,20 +12,21 @@ struct Field {
     int len;
     char startRange, EndRange;
 
-    // void* is Pointer to Something we don't know what's it is yet
-    // what cast to specific type when you use it inside
+    // void* is a Pointer to Something we don't know what its type yet
+    // we will cast it to specific type when we use it inside
     // function<> allows you to store a function in a variable like PHP
     function<void(void*, const char*)> setter;
 };
 
 void gotoxy(int x,int y);
 void textattr(int i);
-void showForm(void* object, vector<Field>& fields);
+bool showForm(void* object, vector<Field>& fields);
 void display(int nChar, char* arr, int cursor, int xPos, int yPos, int len);
 char** multiLineEditor(int* xPos, int* yPos, int* len, char* SR, char* ER, int N);
+int displayMenu(const vector<string>& menu, const string& MenuTitle = "=======Menu======");
 
 // Generic Form to fill an Object
-void showForm(void* object, vector<Field>& fields) {
+bool showForm(void* object, vector<Field>& fields) {
     int n = fields.size();
     const int labelX = 2;
     const int inputX = 14;
@@ -53,10 +54,12 @@ void showForm(void* object, vector<Field>& fields) {
     }
 
     char** values = multiLineEditor(xPos, yPos, len, SR, ER, n);
+    if (values == nullptr) return false;
 
     for (int i = 0; i < n; ++i) {
         fields[i].setter(object, values[i]);
     }
+    return true;
 }
 
 void gotoxy(int x,int y)
@@ -86,6 +89,8 @@ char** multiLineEditor(int* xPos, int* yPos, int* len, char* SR, char* ER, int N
         current[i] = first[i] = last[i] = str[i];
         display(0, nullptr, cursor[i], xPos[i], yPos[i], len[i]);
     }
+    gotoxy(0, yPos[N-1] + 3);
+    cout << "Press ESC to back.";
 
     gotoxy(xPos[0], yPos[0]);
     while(true){
@@ -141,6 +146,9 @@ char** multiLineEditor(int* xPos, int* yPos, int* len, char* SR, char* ER, int N
             }
             break;
         }
+        case 27: // Esc Key
+            system("cls");
+            return nullptr;
         case 8: // Backspace
         {
             // AB|CD
@@ -210,7 +218,54 @@ void display(int nChar, char* str, int cursor, int xPos, int yPos, int len){
 }
 
 
-// Example
+int displayMenu(const vector<string>& menu, const string& MenuTitle){
+    const int nOption = menu.size();
+    bool abort = false;
+    int selected = 0;
+    do{
+        system("cls");
+        cout << "\n" << MenuTitle << "\n";
+
+        for(int i = 0; i < nOption; ++i){
+            gotoxy(2, 3+i*2);
+            if (i == selected){
+                textattr(0x070);
+            } else {
+                textattr(0x007);
+            }
+            cout << menu[i];
+        }
+        textattr(0x007); // reset colors
+        char ch = getch();
+        switch(ch){
+        case -32:{
+            ch = getch();
+            switch(ch){
+            case 72: // Up Arrow
+                selected = (selected - 1 + nOption) % nOption;
+                break;
+            case 80: // Down Arrow
+                selected = (selected + 1) % nOption;
+                break;
+            case 71: // Home Key
+                selected = 0;
+                break;
+            case 79: // End Key
+                selected = nOption - 1;
+                break;
+            }
+            break;
+        }
+        case 27: // Esc Key
+            return -1;
+        case '\r':// Enter
+            return (selected + 1);
+        }
+    } while(!abort);
+}
+
+
+//Example
 
 // struct Student {
 //     int id;

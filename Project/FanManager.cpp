@@ -21,18 +21,31 @@ public:
         return instance;
     }
 
-    void addFan(const Fan& e) {
-        fans.push_back(e);
+    void addFan(const Fan& fan) {
+        fans.push_back(fan);
     }
 
     const vector<Fan>& getFans() const {
         return fans;
     }
 
+    Fan* getFanByEmailPass(string email, string password) {
+        auto it = find_if(fans.begin(), fans.end(),
+            [email, password](Fan& f) {
+                return (f.getEmail() == email && f.getPassword() == password);
+            }
+        );
+
+        if (it != fans.end())
+            return &(*it);
+
+        return nullptr;
+    }
+
     Fan* getFan(int ID) {
         auto it = find_if(fans.begin(), fans.end(),
-            [ID](Fan& e) {
-                return e.getId() == ID;
+            [ID](Fan& f) {
+                return f.getId() == ID;
             }
         );
 

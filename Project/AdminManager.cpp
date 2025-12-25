@@ -21,18 +21,18 @@ public:
         return instance;
     }
 
-    void addAdmin(const Admin& e) {
-        admins.push_back(e);
+    void addAdmin(const Admin& admin) {
+        admins.push_back(admin);
     }
 
     const vector<Admin>& getAdmins() const {
         return admins;
     }
 
-    Admin* getAdmin(string email) {
+    Admin* getAdminByEmailPass(string email, string password) {
         auto it = find_if(admins.begin(), admins.end(),
-            [email](Admin& admin) {
-                return admin.getEmail() == email;
+            [email, password](Admin& admin) {
+                return (admin.getEmail() == email && admin.getPassword() == password);
             }
         );
 

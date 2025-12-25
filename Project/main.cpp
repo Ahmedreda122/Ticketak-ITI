@@ -4,13 +4,16 @@
 #include <map>
 #include <memory> // For smart pointers (optional, but good practice)
 #include <algorithm>
+#include <GenericMultiEditorForm.cpp>
+#include <EventManager.cpp>
 
 using namespace std;
 
 // ================= ENUMS =================
 enum class UserType {
-    Admin,
-    Fan
+    Fan = 1
+    Admin = 2,
+    NotAuth = 0,
 };
 
 enum class TicketType {
@@ -47,6 +50,13 @@ struct TicketTypePrice {
 // Placeholder for Date since C++ doesn't have a primitive Date type
 struct Date {
     int day, month, year;
+};
+
+// DTO for Login Data
+struct LoginDTO
+{
+    string email;
+    string password;
 };
 
 // ================= CORE CLASSES =================
@@ -251,11 +261,21 @@ public:
 
 // ================= SERVICES =================
 
-class AuthenticationService {
+static class AuthenticationService {
 public:
     // Logic uses FanManager and AdminManager to verify credentials
-    bool login(string email, string password, UserType userType);
-    bool registerUser(User user, UserType type); 
+    // Returns Pointer to the Fan/Admin or nullptr for wrong crenditials
+    static User* login(const LoginDTO& user, UserType userType) {
+        if (userType == UserType::Fan) {
+            FanManager fanManager = FanManager::getInstance();
+            return fanManager.getFanByEmailPass(user.email, user.password);
+        } else if (userType == UserType::Admin){
+            AdminManager adminManager = AdminManager::getInstance();
+            return adminManager.getAdminByEmailPass(user.email, user.password);
+        }
+        return nullptr;
+    }
+    static bool registerUser(User user, UserType type); 
 };
 
 // ================= PAYMENT STRATEGY PATTERN =================
@@ -314,35 +334,135 @@ public:
 
 class SystemManager {
 private:
-    Fan* currentFan;
-    Admin* currentAdmin;
-    UserType userType;
-
-    // Dependencies
-    AuthenticationService authService;
-    PaymentService paymentService;
-
+    Admin* currentAdmin = nullptr;
+    Fan* currentFan = nullptr;
+    UserType userType = UserType::NotAuth;
 public:
     void run(); // Main loop
-    void setCurrentAdmin(Admin* admin);
-    void setCurrentFan(Fan* fan);
+
+    // Make current Admin Points at an Admin returned from Login Method (AdminManager.admins vector)
+    void setCurrentAdmin(Admin& admin) {
+        currentAdmin = &admin;
+        currentFan = nullptr;
+        userType = UserType::Admin;
+    }
+
+    // Make current Fan Points at a Fan returned from Login Method (FanManager.Fans vector)
+    void setCurrentFan(Fan& fan) {
+        currentFan = &fan;
+        currentAdmin = nullptr;
+        userType = UserType::Fan;
+    }
+
+    // Note: SystemManager does not Own these Objects (FanManager & AdminManager Do)
+    // so we don't delete them only points to them or points to null
+    void logout() {
+        currentAdmin = nullptr;
+        currentFan = nullptr;
+        userType = UserType::NotAuth;
+    }
     
-    bool isAdmin();
-    bool isFan();
+    bool isAdmin(){
+        return userType == UserType::Admin;
+    }
+
+    bool isFan() {
+        return userType == UserType::Fan;
+    }
     
     void viewEventsPage();
     int viewAdminMenu();
     int viewFanMenu();
     
-    string viewLoginForm(); // Returns email/pass string? Or handles UI.
+    int viewLoginForm() {
+        vector<Field> loginFormFields = {
+            {
+                "Email:", 50, 33, 126,
+                [](void* user, const char* emailInput) {
+                    ((LoginDTO*) user)->email = emailInput;
+                }
+            },
+            { 
+                "Password:",50, 32, 126,
+                [](void* user, const char* pass) {
+                    ((LoginDTO*) user)->password = pass;
+                }
+            };
+        };
+
+        bool abortLoginFormFill = false;
+        do {
+            // Choosing User Type Menu
+            int usertype = displayMenu(vector<string>{"1-Fan\n","2-Admin\n"}, "You want sign in as");
+            // if user Press on ESC to back to main menu
+            if (userType == -1) {return userType;}
+
+            User* currentUser = nullptr;
+            
+            do {
+                LoginDTO user;
+                if !(showForm(&user, loginFormFields)){
+                    // if user press on ESC to return to Choosing User Type Menu
+                    abortLoginFormFill = true;
+                    break;
+                }
+
+                currentUser = AuthenticationService::login(user, userType);
+                if (user != nullptr){
+                    if (userType == UserType::Fan) {
+                        Fan* fan = static_cast<Fan*>(currentUser);
+                        setCurrentFan(fan);
+                        return 1;
+                    } else if (userType == UserType::Admin) { 
+                        Admin* admin = static_cast<Admin*>(currentUser);
+                        setCurrentAdmin(admin);
+                        return 2;
+                    }
+                } 
+            } while (currentUser == nullptr);
+            
+        } while (abortLogin)
+    }
     User viewRegisterForm();
     
     void searchEventsByCategory(Category category);
     bool purchasePage(Ticket myTicket);
-    bool logout();
 };
 
 
+void SystemManager::run() {
+    vector<string> menu = {"1- Login\n", "2- Register\n"}
+
+    while(true) {
+        int choice = displayMenu(menu, "====================Welcome to Ticketak======================");
+    
+        switch(choice){
+            // Login
+            case 1:{
+                int result = viewLoginForm();
+                
+                switch (result)
+                {
+                // Returning to main menu
+                case -1:
+                    break;
+                // Fan Logs in    
+                case 1:
+                    break;
+                // Admin Logs in    
+                case 2:
+                    break;
+                }
+                break;
+            }
+            case 2:
+                break;
+            case -1:
+                cout << "Thanks for using Ticketak :)\n";
+                return;    
+        }
+    }
+}
 
 
 // ================= MAIN (ENTRY POINT) =================
