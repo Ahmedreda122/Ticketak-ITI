@@ -373,38 +373,44 @@ public:
 
     int viewFanMenu();
 
-
-    int viewRegisterForm() {
+    bool viewRegisterForm() {
         vector<Field> registerFormFields = {
-                {
-                        "Email:",    50, 33, 126,
-                        [](void *user, const char *emailInput) {
-                            ((Fan *) user)->setEmail(emailInput);
-                        }
-                },
-                {
-                        "Password:", 50, 32, 126,
-                        [](void *user, const char *pass) {
-                            ((Fan *) user)->setPassword(pass);
-                        }
-                },
-                {
-                        "Gender(1-Male, 2-Female):",    1, '1', '2',
-                        [](void *user, const char *gender) {
-                            ((Fan *) user)->setGender(gender[0]);
-                        }
-                },
-                {
-                        "Phone:", 11, '0', '9',
-                        [](void *user, const char *phone) {
-                            ((Fan *) user)->setPhoneNumber(phone);
-                        }
+            {
+                "Name:",    30, 32, 126,
+                [](void *user, const char *nameInput) {
+                    ((Fan *) user)->setName(nameInput);
                 }
+            },
+            {
+                "Email:",    50, 33, 126,
+                [](void *user, const char *emailInput) {
+                    ((Fan *) user)->setEmail(emailInput);
+                }
+            },
+            {
+                "Password:", 50, 32, 126,
+                [](void *user, const char *pass) {
+                    ((Fan *) user)->setPassword(pass);
+                }
+            },
+            {
+                "Gender(1=>M|2=>F):",    1, '1', '2',
+                [](void *user, const char *gender) {
+                    ((Fan *) user)->setGender(gender[0] == 1 ? 'M' : 'F');
+                }
+            },
+            {
+                "Phone:", 11, '0', '9',
+                [](void *user, const char *phone) {
+                    ((Fan *) user)->setPhoneNumber(phone);
+                }
+            }
         };
+
         Fan fan;
-        string errorMsg;
+        string errorMsg = "";
         if(!showForm(&fan, registerFormFields, errorMsg))
-            return -1;
+            return false;
         FanManager& fanManager = FanManager::getInstance();
 
         if(fanManager.getFanByEmail(fan.getEmail()) == nullptr)
@@ -413,7 +419,7 @@ public:
             fanManager.addFan(fan);
         }
 
-        return 0;
+        return true;
     }
 
     void searchEventsByCategory(Category category);
@@ -422,18 +428,18 @@ public:
 
     int viewLoginForm() {
         vector<Field> loginFormFields = {
-                {
-                        "Email:",    50, 33, 126,
-                        [](void *user, const char *emailInput) {
-                            ((LoginDTO *) user)->email = emailInput;
-                        }
-                },
-                {
-                        "Password:", 50, 32, 126,
-                        [](void *user, const char *pass) {
-                            ((LoginDTO *) user)->password = pass;
-                        }
+            {
+                "Email:",    50, 33, 126,
+                [](void *user, const char *emailInput) {
+                    ((LoginDTO *) user)->email = emailInput;
                 }
+            },
+            {
+                "Password:", 50, 32, 126,
+                [](void *user, const char *pass) {
+                    ((LoginDTO *) user)->password = pass;
+                }
+            }
         };
 
         bool abortLoginFormFill = false;
@@ -495,21 +501,29 @@ void SystemManager::run() {
                     // Returning to main menu
                     case -1:
                         break;
-                        // Fan Logs in
+                    // Fan Logs in
                     case 1:
+                    {
                         break;
-                        // Admin Logs in
+                    }
+                    // Admin Logs in
                     case 2:
+                    {
+                        cout << "I AM ADMIN"; return;
                         break;
+                    }
                 }
                 break;
             }
-            case 2:// Register
+            case 2: { // Register
                 viewRegisterForm();
                 break;
-            case -1:
+            }
+            case -1: {
+                system("cls");
                 cout << "Thanks for using Ticketak :)\n";
                 return;
+            }
         }
     }
 }
@@ -518,6 +532,9 @@ void SystemManager::run() {
 // ================= MAIN (ENTRY POINT) =================
 
 int main() {
+    Admin admin("Karim", "admin@ticketak.com", "password", 'M', "01065243880");
+    AdminManager::getInstance().addAdmin(admin);
+
     SystemManager app;
     app.run();
     return 0;

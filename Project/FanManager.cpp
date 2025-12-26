@@ -16,7 +16,7 @@ private:
 
 public:
     int getSize(){
-        fans.size();
+        return fans.size();
     }
 
     static FanManager& getInstance() {

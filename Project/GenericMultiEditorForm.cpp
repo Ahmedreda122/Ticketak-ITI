@@ -35,7 +35,7 @@ int displayMenu(const vector<string>& menu, const string& MenuTitle = "=======Me
 bool showForm(void* object, vector<Field>& fields, string errorMessage) {
     int n = fields.size();
     const int labelX = 2;
-    const int inputX = 14;
+    const int inputX = 21;
     const int startY = 1;
 
     int* xPos = new int[n];
@@ -103,7 +103,6 @@ char** multiLineEditor(int* xPos, int* yPos, int* len, char* SR, char* ER, int N
     }
     gotoxy(0, yPos[N-1] + 3);
     cout << "Press ESC to back.";
-
     gotoxy(xPos[0], yPos[0]);
     while(true){
         char ch = getch();
@@ -237,6 +236,8 @@ int displayMenu(const vector<string>& menu, const string& MenuTitle){
     do{
         system("cls");
         cout << "\n" << MenuTitle << "\n";
+        gotoxy(0, nOption*2 + 3);
+        cout << "Press ESC to back.";
 
         for(int i = 0; i < nOption; ++i){
             gotoxy(2, 3+i*2);
