@@ -1,4 +1,10 @@
 #include <iostream>
+#include <string>
+#include <cstdio>
+#include <cstring>
+// #ifndef _NO_CPP_BYTE
+// #define _NO_CPP_BYTE
+// #endif
 #include <windows.h>
 #include <conio.h>
 #include <cstdlib>
@@ -20,13 +26,13 @@ struct Field {
 
 void gotoxy(int x,int y);
 void textattr(int i);
-bool showForm(void* object, vector<Field>& fields);
+bool showForm(void* object, vector<Field>& fields, string errorMessage="");
 void display(int nChar, char* arr, int cursor, int xPos, int yPos, int len);
 char** multiLineEditor(int* xPos, int* yPos, int* len, char* SR, char* ER, int N);
 int displayMenu(const vector<string>& menu, const string& MenuTitle = "=======Menu======");
 
 // Generic Form to fill an Object
-bool showForm(void* object, vector<Field>& fields) {
+bool showForm(void* object, vector<Field>& fields, string errorMessage) {
     int n = fields.size();
     const int labelX = 2;
     const int inputX = 14;
@@ -53,6 +59,12 @@ bool showForm(void* object, vector<Field>& fields) {
         ER[i]   = fields[i].EndRange;
     }
 
+    if (!errorMessage.empty()) {
+        gotoxy(0, yPos[n-1] + 2);
+        cout << "\x1b[31m" << errorMessage << "\x1b[0m\n";
+        gotoxy(xPos[0], yPos[0]);
+    }
+    
     char** values = multiLineEditor(xPos, yPos, len, SR, ER, n);
     if (values == nullptr) return false;
 
@@ -262,6 +274,8 @@ int displayMenu(const vector<string>& menu, const string& MenuTitle){
             return (selected + 1);
         }
     } while(!abort);
+
+    return -1;
 }
 
 

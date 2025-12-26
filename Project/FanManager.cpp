@@ -1,7 +1,6 @@
-#include <vector>
+#include "Fan.cpp"
 #include <string>
 #include <algorithm>
-#include "Fan.cpp"
 
 // Singleton Class for Fans
 class FanManager {

@@ -4,53 +4,57 @@
 #include <map>
 #include <memory> // For smart pointers (optional, but good practice)
 #include <algorithm>
-#include <GenericMultiEditorForm.cpp>
-#include <EventManager.cpp>
+
+#include "GenericMultiEditorForm.cpp"
+
+#include "EventManager.cpp"
+#include "FanManager.cpp"
+#include "AdminManager.cpp"
 
 using namespace std;
 
 // ================= ENUMS =================
 enum class UserType {
-    Fan = 1
+    Fan = 1,
     Admin = 2,
-    NotAuth = 0,
+    NotAuth = 0
 };
 
-enum class TicketType {
-    VIP,
-    Economic,
-    Regular
-};
+// enum class TicketType {
+//     VIP,
+//     Economic,
+//     Regular
+// };
 
-enum class TicketStatus {
-    Available,
-    Reserved,
-    Expired
-};
+// enum class TicketStatus {
+//     Available,
+//     Reserved,
+//     Expired
+// };
 
-enum class Category {
-    Sports,
-    Parties,
-    Carnivals
-};
+// enum class Category {
+//     Sports,
+//     Parties,
+//     Carnivals
+// };
 
 // ================= FORWARD DECLARATIONS =================
-class Event;
-class Ticket;
-class Fan;
-class Admin;
+// class Event;
+// class Ticket;
+// class Fan;
+// class Admin;
 
 // ================= STRUCTS / HELPERS =================
 // Represents the <<Map>> TicketTypePrice
-struct TicketTypePrice {
-    TicketType type;
-    double price;
-};
+// struct TicketTypePrice {
+//     TicketType type;
+//     double price;
+// };
 
 // Placeholder for Date since C++ doesn't have a primitive Date type
-struct Date {
-    int day, month, year;
-};
+// struct Date {
+//     int day, month, year;
+// };
 
 // DTO for Login Data
 struct LoginDTO
@@ -61,80 +65,73 @@ struct LoginDTO
 
 // ================= CORE CLASSES =================
 
-class Ticket {
-private:
-    string id;
-    int eventId;
-    int fanId;
-    TicketTypePrice typePrice;
-    TicketStatus status;
+// class Ticket {
+// private:
+//     string id;
+//     int eventId;
+//     int fanId;
+//     TicketTypePrice typePrice;
+//     TicketStatus status;
 
-public:
-    void changeStatus(TicketStatus status);
-    double getPrice();
-    string getType();
+// public:
+//     void changeStatus(TicketStatus status);
+//     double getPrice();
+//     string getType();
     
-    // Getters and Setters
-    void setFanId(int id) { fanId = id; }
-};
+//     // Getters and Setters
+//     void setFanId(int id) { fanId = id; }
+// };
 
-class Event {
-private:
-    int id;
-    string name;
-    Category category;
-    int capacity;
-    int availableTickets;
-    vector<Ticket> tickets; // Composition: Event contains Tickets
-    Date date;
+// class Event {
+// private:
+//     int id;
+//     string name;
+//     Category category;
+//     int capacity;
+//     int availableTickets;
+//     vector<Ticket> tickets; // Composition: Event contains Tickets
+//     Date date;
 
-public:
-    bool bookEvent(int fanId, int ticketId); // Logic to link fan to ticket
-    void viewDetails();
-    string getEventStatus();
-    void expireTickets();
+// public:
+//     bool bookEvent(int fanId, int ticketId); // Logic to link fan to ticket
+//     void viewDetails();
+//     string getEventStatus();
+//     void expireTickets();
 
-    int getId() const { return id; }
-    // Helper to populate tickets
-    void addTicket(Ticket t) { tickets.push_back(t); }
+//     int getId() const { return id; }
+//     // Helper to populate tickets
+//     void addTicket(Ticket t) { tickets.push_back(t); }
 
-};
+// };
 
-// ================= USER HIERARCHY =================
+// // ================= USER HIERARCHY =================
 
-class User {
-protected: 
-    string email;
-    string password;
-    char gender;
-    string phoneNumber;
+// class User {
+// protected: 
+//     string email;
+//     string password;
+//     char gender;
+//     string phoneNumber;
 
-public:
-    virtual ~User() = default; // Virtual destructor for base class
+// public:
+//     virtual ~User() = default; // Virtual destructor for base class
     
-    string getEmail() const { return email; }
-    string getPassword() const { return password; }
-};
+//     string getEmail() const { return email; }
+//     string getPassword() const { return password; }
+// };
 
-class Fan : public User {
-private:
-    int id;
-    vector<Ticket> myTickets;
+// class Fan : public User {
+// private:
+//     int id;
+//     vector<Ticket> myTickets;
 
-public:
-    void buyTicket(Ticket myTicket);
-    vector<Ticket> viewMyTickets();
-    int getId() const { return id; }
-};
+// public:
+//     void buyTicket(Ticket myTicket);
+//     vector<Ticket> viewMyTickets();
+//     int getId() const { return id; }
+// };
 
-class Admin : public User {
-public:
-    // Note: The diagram links this to EventManager, 
-    // but implies Admin might manage instances directly.
-    bool createEvent(); 
-    bool addEvent(int eventId);
-    bool deleteEvent(int eventId);
-};
+
 
 // ================= SINGLETON VECTORS (DATABASES) =================
 
@@ -261,16 +258,16 @@ public:
 
 // ================= SERVICES =================
 
-static class AuthenticationService {
+class AuthenticationService {
 public:
     // Logic uses FanManager and AdminManager to verify credentials
-    // Returns Pointer to the Fan/Admin or nullptr for wrong crenditials
+    // Returns Pointer to the Fan/Admin or nullptr for wrong credentials
     static User* login(const LoginDTO& user, UserType userType) {
         if (userType == UserType::Fan) {
-            FanManager fanManager = FanManager::getInstance();
+            FanManager& fanManager = FanManager::getInstance();
             return fanManager.getFanByEmailPass(user.email, user.password);
         } else if (userType == UserType::Admin){
-            AdminManager adminManager = AdminManager::getInstance();
+            AdminManager& adminManager = AdminManager::getInstance();
             return adminManager.getAdminByEmailPass(user.email, user.password);
         }
         return nullptr;
@@ -373,7 +370,11 @@ public:
     void viewEventsPage();
     int viewAdminMenu();
     int viewFanMenu();
+    User viewRegisterForm();
     
+    void searchEventsByCategory(Category category);
+    bool purchasePage(Ticket myTicket);
+
     int viewLoginForm() {
         vector<Field> loginFormFields = {
             {
@@ -387,51 +388,54 @@ public:
                 [](void* user, const char* pass) {
                     ((LoginDTO*) user)->password = pass;
                 }
-            };
+            }
         };
 
         bool abortLoginFormFill = false;
         do {
             // Choosing User Type Menu
-            int usertype = displayMenu(vector<string>{"1-Fan\n","2-Admin\n"}, "You want sign in as");
+            int user_type = displayMenu(vector<string>{"1-Fan\n","2-Admin\n"}, "You want sign in as");
             // if user Press on ESC to back to main menu
-            if (userType == -1) {return userType;}
+            if (user_type == -1) {return -1;}
 
             User* currentUser = nullptr;
             
+            string errorMsg = "";
             do {
                 LoginDTO user;
-                if !(showForm(&user, loginFormFields)){
+                if (!showForm(&user, loginFormFields, errorMsg)){
                     // if user press on ESC to return to Choosing User Type Menu
                     abortLoginFormFill = true;
                     break;
                 }
 
+                UserType userType = static_cast<UserType>(user_type);
+
                 currentUser = AuthenticationService::login(user, userType);
-                if (user != nullptr){
+                if (currentUser != nullptr){
                     if (userType == UserType::Fan) {
                         Fan* fan = static_cast<Fan*>(currentUser);
-                        setCurrentFan(fan);
+                        setCurrentFan(*fan);
                         return 1;
                     } else if (userType == UserType::Admin) { 
                         Admin* admin = static_cast<Admin*>(currentUser);
-                        setCurrentAdmin(admin);
+                        setCurrentAdmin(*admin);
                         return 2;
                     }
-                } 
+                } else {
+                    errorMsg = "Your credentials are wrong, please try again.";
+                }
             } while (currentUser == nullptr);
             
-        } while (abortLogin)
+        } while (abortLoginFormFill);
+
+        return -1;
     }
-    User viewRegisterForm();
-    
-    void searchEventsByCategory(Category category);
-    bool purchasePage(Ticket myTicket);
 };
 
 
 void SystemManager::run() {
-    vector<string> menu = {"1- Login\n", "2- Register\n"}
+    vector<string> menu = {"1- Login\n", "2- Register\n"};
 
     while(true) {
         int choice = displayMenu(menu, "====================Welcome to Ticketak======================");
