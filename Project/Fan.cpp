@@ -10,5 +10,9 @@ private:
 public:
     void buyTicket(Ticket myTicket);
     vector<Ticket> viewMyTickets();
+    void setId(int _id)
+    {
+        id = _id;
+    }
     int getId() const { return id; }
 };

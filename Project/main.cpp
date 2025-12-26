@@ -57,8 +57,7 @@ enum class UserType {
 // };
 
 // DTO for Login Data
-struct LoginDTO
-{
+struct LoginDTO {
     string email;
     string password;
 };
@@ -77,7 +76,7 @@ struct LoginDTO
 //     void changeStatus(TicketStatus status);
 //     double getPrice();
 //     string getType();
-    
+
 //     // Getters and Setters
 //     void setFanId(int id) { fanId = id; }
 // };
@@ -115,7 +114,7 @@ struct LoginDTO
 
 // public:
 //     virtual ~User() = default; // Virtual destructor for base class
-    
+
 //     string getEmail() const { return email; }
 //     string getPassword() const { return password; }
 // };
@@ -262,17 +261,18 @@ class AuthenticationService {
 public:
     // Logic uses FanManager and AdminManager to verify credentials
     // Returns Pointer to the Fan/Admin or nullptr for wrong credentials
-    static User* login(const LoginDTO& user, UserType userType) {
+    static User *login(const LoginDTO &user, UserType userType) {
         if (userType == UserType::Fan) {
-            FanManager& fanManager = FanManager::getInstance();
+            FanManager &fanManager = FanManager::getInstance();
             return fanManager.getFanByEmailPass(user.email, user.password);
-        } else if (userType == UserType::Admin){
-            AdminManager& adminManager = AdminManager::getInstance();
+        } else if (userType == UserType::Admin) {
+            AdminManager &adminManager = AdminManager::getInstance();
             return adminManager.getAdminByEmailPass(user.email, user.password);
         }
         return nullptr;
     }
-    static bool registerUser(User user, UserType type); 
+
+    static bool registerUser(User user, UserType type);
 };
 
 // ================= PAYMENT STRATEGY PATTERN =================
@@ -302,7 +302,7 @@ private:
 
 public:
     CreditCard(string n, string num, string c, string exp)
-        : name(n), cardNumber(num), cvv(c), expiryDate(exp) {}
+            : name(n), cardNumber(num), cvv(c), expiryDate(exp) {}
 
     bool pay(double amount) override {
         cout << "Paying " << amount << " via CreditCard " << cardNumber << ".\n";
@@ -312,10 +312,10 @@ public:
 
 class PaymentService {
 private:
-    PaymentMethod* paymentMethod; // Strategy pointer
+    PaymentMethod *paymentMethod; // Strategy pointer
 
 public:
-    void setPaymentMethod(PaymentMethod* method) {
+    void setPaymentMethod(PaymentMethod *method) {
         this->paymentMethod = method;
     }
 
@@ -331,21 +331,21 @@ public:
 
 class SystemManager {
 private:
-    Admin* currentAdmin = nullptr;
-    Fan* currentFan = nullptr;
+    Admin *currentAdmin = nullptr;
+    Fan *currentFan = nullptr;
     UserType userType = UserType::NotAuth;
 public:
     void run(); // Main loop
 
     // Make current Admin Points at an Admin returned from Login Method (AdminManager.admins vector)
-    void setCurrentAdmin(Admin& admin) {
+    void setCurrentAdmin(Admin &admin) {
         currentAdmin = &admin;
         currentFan = nullptr;
         userType = UserType::Admin;
     }
 
     // Make current Fan Points at a Fan returned from Login Method (FanManager.Fans vector)
-    void setCurrentFan(Fan& fan) {
+    void setCurrentFan(Fan &fan) {
         currentFan = &fan;
         currentAdmin = nullptr;
         userType = UserType::Fan;
@@ -358,52 +358,97 @@ public:
         currentFan = nullptr;
         userType = UserType::NotAuth;
     }
-    
-    bool isAdmin(){
+
+    bool isAdmin() {
         return userType == UserType::Admin;
     }
 
     bool isFan() {
         return userType == UserType::Fan;
     }
-    
+
     void viewEventsPage();
+
     int viewAdminMenu();
+
     int viewFanMenu();
-    User viewRegisterForm();
-    
+
+
+    int viewRegisterForm() {
+        vector<Field> registerFormFields = {
+                {
+                        "Email:",    50, 33, 126,
+                        [](void *user, const char *emailInput) {
+                            ((Fan *) user)->setEmail(emailInput);
+                        }
+                },
+                {
+                        "Password:", 50, 32, 126,
+                        [](void *user, const char *pass) {
+                            ((Fan *) user)->setPassword(pass);
+                        }
+                },
+                {
+                        "Gender(1-Male, 2-Female):",    1, '1', '2',
+                        [](void *user, const char *gender) {
+                            ((Fan *) user)->setGender(gender[0]);
+                        }
+                },
+                {
+                        "Phone:", 11, '0', '9',
+                        [](void *user, const char *phone) {
+                            ((Fan *) user)->setPhoneNumber(phone);
+                        }
+                }
+        };
+        Fan fan;
+        string errorMsg;
+        if(!showForm(&fan, registerFormFields, errorMsg))
+            return -1;
+        FanManager& fanManager = FanManager::getInstance();
+
+        if(fanManager.getFanByEmail(fan.getEmail()) == nullptr)
+        {
+            fan.setId(fanManager.getSize());
+            fanManager.addFan(fan);
+        }
+
+        return 0;
+    }
+
     void searchEventsByCategory(Category category);
+
     bool purchasePage(Ticket myTicket);
 
     int viewLoginForm() {
         vector<Field> loginFormFields = {
-            {
-                "Email:", 50, 33, 126,
-                [](void* user, const char* emailInput) {
-                    ((LoginDTO*) user)->email = emailInput;
+                {
+                        "Email:",    50, 33, 126,
+                        [](void *user, const char *emailInput) {
+                            ((LoginDTO *) user)->email = emailInput;
+                        }
+                },
+                {
+                        "Password:", 50, 32, 126,
+                        [](void *user, const char *pass) {
+                            ((LoginDTO *) user)->password = pass;
+                        }
                 }
-            },
-            { 
-                "Password:",50, 32, 126,
-                [](void* user, const char* pass) {
-                    ((LoginDTO*) user)->password = pass;
-                }
-            }
         };
 
         bool abortLoginFormFill = false;
         do {
             // Choosing User Type Menu
-            int user_type = displayMenu(vector<string>{"1-Fan\n","2-Admin\n"}, "You want sign in as");
+            int user_type = displayMenu(vector<string>{"1-Fan\n", "2-Admin\n"}, "You want sign in as");
             // if user Press on ESC to back to main menu
-            if (user_type == -1) {return -1;}
+            if (user_type == -1) { return -1; }
 
-            User* currentUser = nullptr;
-            
+            User *currentUser = nullptr;
+
             string errorMsg = "";
             do {
                 LoginDTO user;
-                if (!showForm(&user, loginFormFields, errorMsg)){
+                if (!showForm(&user, loginFormFields, errorMsg)) {
                     // if user press on ESC to return to Choosing User Type Menu
                     abortLoginFormFill = true;
                     break;
@@ -412,13 +457,13 @@ public:
                 UserType userType = static_cast<UserType>(user_type);
 
                 currentUser = AuthenticationService::login(user, userType);
-                if (currentUser != nullptr){
+                if (currentUser != nullptr) {
                     if (userType == UserType::Fan) {
-                        Fan* fan = static_cast<Fan*>(currentUser);
+                        Fan *fan = static_cast<Fan *>(currentUser);
                         setCurrentFan(*fan);
                         return 1;
-                    } else if (userType == UserType::Admin) { 
-                        Admin* admin = static_cast<Admin*>(currentUser);
+                    } else if (userType == UserType::Admin) {
+                        Admin *admin = static_cast<Admin *>(currentUser);
                         setCurrentAdmin(*admin);
                         return 2;
                     }
@@ -426,7 +471,7 @@ public:
                     errorMsg = "Your credentials are wrong, please try again.";
                 }
             } while (currentUser == nullptr);
-            
+
         } while (abortLoginFormFill);
 
         return -1;
@@ -437,33 +482,34 @@ public:
 void SystemManager::run() {
     vector<string> menu = {"1- Login\n", "2- Register\n"};
 
-    while(true) {
+    while (true) {
+
         int choice = displayMenu(menu, "====================Welcome to Ticketak======================");
-    
-        switch(choice){
+
+        switch (choice) {
             // Login
-            case 1:{
+            case 1: {
                 int result = viewLoginForm();
-                
-                switch (result)
-                {
-                // Returning to main menu
-                case -1:
-                    break;
-                // Fan Logs in    
-                case 1:
-                    break;
-                // Admin Logs in    
-                case 2:
-                    break;
+
+                switch (result) {
+                    // Returning to main menu
+                    case -1:
+                        break;
+                        // Fan Logs in
+                    case 1:
+                        break;
+                        // Admin Logs in
+                    case 2:
+                        break;
                 }
                 break;
             }
-            case 2:
+            case 2:// Register
+                viewRegisterForm();
                 break;
             case -1:
                 cout << "Thanks for using Ticketak :)\n";
-                return;    
+                return;
         }
     }
 }
