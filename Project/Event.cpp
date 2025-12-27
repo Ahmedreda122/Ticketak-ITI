@@ -74,7 +74,12 @@ public:
             default: return "Unknown";
         }
     }
-    bool bookEvent(int fanId, int ticketId); // Logic to link fan to ticket
+    // Logic to link fan to ticket
+    bool bookEvent(int fanId, int ticketId)
+    {
+        // need to implement logic
+        return true;
+    }
     string viewDetailsBreifly()
     {
         return "Name: "+name+" , Category: "+categoryToString(category)+" , Date: "+dateToString(date);

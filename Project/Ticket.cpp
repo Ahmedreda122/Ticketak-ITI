@@ -30,7 +30,7 @@ private:
     TicketStatus status;
 
 public:
-    Ticket(int id, int eventId, int fanId,TicketTypePrice typePrice)
+    Ticket(string id, int eventId, int fanId,TicketTypePrice typePrice)
     {
         this->id = id;
         this-> eventId = eventId;
@@ -39,7 +39,10 @@ public:
         status = TicketStatus::Available;
     }
     void changeStatus(TicketStatus status);
-    double getPrice();
+    string getId() {return id; }
+    int getEventId() {return eventId; }
+    int getFanId() {return fanId; }
+    double getPrice() { return typePrice.price; }
     TicketTypePrice getTypePrice() { return typePrice;}
     string getType()
     {

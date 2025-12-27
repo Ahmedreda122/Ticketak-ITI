@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cctype>
 #include <regex>
+#include <string>
 
 #include "GenericMultiEditorForm.cpp"
 
@@ -261,9 +262,9 @@ class ValidationService {
 public:
     static bool isValidEmail(const string& email)
     {
-        // A Form of E-mail following IETF standards 
+        // A Form of E-mail following IETF standards
         regex stdEmail("[^@.]+(.[^@.]+)?(@[A-Za-z0-9]+)(\\-[A-Za-z0-9]+)?(.[0-9]*[A-Za-z]+[0-9]*(\\-[A-Za-z0-9]+)?)+");
-        // If the user's email following the regex form return true, false otherwise 
+        // If the user's email following the regex form return true, false otherwise
         return regex_match(email, stdEmail);
     }
 
@@ -271,7 +272,7 @@ public:
     {
         // Standard form of Egyptian phone number
         regex stdPhoneNum("(010|011|012|015)[0-9]{8}");
-        // If the user's phone number following the regex form return true, false otherwise 
+        // If the user's phone number following the regex form return true, false otherwise
         return regex_match(phoneNum, stdPhoneNum);
     }
 
@@ -283,10 +284,10 @@ public:
         //     // Return false if bigger than 20 or lower than 4
         //     return false;
         // }
-        
+
         // // A Standard form for username
         // regex stdUserName("([0-9_]*[a-zA-Z]+[_0-9]*[a-zA-Z]+[0-9_]*)");
-        // // If the user's username following the regex form return true, false otherwise 
+        // // If the user's username following the regex form return true, false otherwise
         // return regex_match(userName, stdUserName);
     }
 
@@ -370,6 +371,7 @@ public:
 
     bool processPayment(double amount) {
         if (paymentMethod) {
+                //cout<<"process"<<endl;
             return paymentMethod->pay(amount);
         }
         return false;
@@ -482,7 +484,8 @@ public:
                  selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getRegularTickets().price;
                  break;
         }
-        Ticket ticket(1,selectedEvent,1,selectedTicketTypePrice);
+        // remember to pass real fan id and current fan to ticket
+        Ticket ticket("1",selectedEvent,1,selectedTicketTypePrice);
         purchasePage(ticket);
     }
 
@@ -532,7 +535,7 @@ public:
             if(!showForm(&fan, registerFormFields, errorMsg, errorCount))
                 cancelForm = true;
 
-            // reset the errors    
+            // reset the errors
             errorCount = 0;
             errorMsg = "";
 
@@ -574,8 +577,34 @@ public:
     {
         int selectedPaymentMethod = displayMenu(vector<string>{"1-Fawry Pay\n", "2-Credit Card\n"},"Choose your payment method",
                                              "Ticket price ", "  " + to_string(myTicket.getTypePrice().price),7);
-
+        PaymentService paymentService;
+        system("cls");
         // handle ESC case
+        if(selectedPaymentMethod == -1)
+        {
+            return false;
+        }
+        // User select to pay with Fawry
+        else if(selectedPaymentMethod == 1)
+        {
+            PaymentMethod* fawry = new FawryPay();
+            paymentService.setPaymentMethod(fawry);
+        }
+        // User select to pay with Credit Card
+        else if(selectedPaymentMethod == 2)
+        {
+            // here you should take real data of credit card from user in form
+            PaymentMethod* creditCard = new CreditCard("credit 1","1","cvv1","10-1-207");
+            paymentService.setPaymentMethod(creditCard);
+        }
+
+        // pay for ticket
+        paymentService.processPayment(myTicket.getPrice());
+
+        // after pay for ticket we will book ticket for that event
+        EventManager& eventManager = EventManager::getInstance();
+        Event* event = eventManager.getEvent(myTicket.getEventId());
+        event->bookEvent(myTicket.getFanId() , stoi(myTicket.getId()));
         while(true)
         {
 
