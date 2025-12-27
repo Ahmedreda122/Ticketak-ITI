@@ -49,6 +49,18 @@ public:
         this->economicTickets = economicTickets;
         this->regularTickets = regularTickets;
     }
+    const TicketTypePriceQuantity& getVipTickets() const {
+        return vipTickets;
+    }
+
+    const TicketTypePriceQuantity& getEconomicTickets() const {
+        return economicTickets;
+    }
+
+    const TicketTypePriceQuantity& getRegularTickets() const {
+        return regularTickets;
+    }
+
     string dateToString(Date date) const{
         string d = (date.day < 10 ? "0" : "") + to_string(date.day);
         string m = (date.month < 10 ? "0" : "") + to_string(date.month);

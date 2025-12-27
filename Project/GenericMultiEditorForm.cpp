@@ -29,7 +29,7 @@ void display(int nChar, char* arr, int cursor, int xPos, int yPos, int len);
 bool isCharAllowed(char ch, const string& regexStr);
 char** multiLineEditor(int* xPos, int* yPos, int* len, string* regexStrs, int N, int errorCount = 0);
 int displayMenu(const vector<string>& menu, const string& MenuTitle = "=======Menu======");
-int displayMenu(const vector<string>& menu, const string& MenuTitle, const string& MenuDescription);
+int displayMenu(const vector<string>& menu, const string& MenuTitle, const string& MenuDescription, int YPositionOfESC);
 
 // Generic Form to fill an Object
 bool showForm(void* object, vector<Field>& fields, string errorMessage, int errorCount) {
@@ -295,14 +295,14 @@ int displayMenu(const vector<string>& menu, const string& MenuTitle){
 }
 
 
-int displayMenu(const vector<string>& menu, const string& MenuTitle,const string& MenuDescriptionTitle ,  const string& MenuDescription){
+int displayMenu(const vector<string>& menu, const string& MenuTitle,const string& MenuDescriptionTitle ,  const string& MenuDescription,int YPositionOfESC){
     const int nOption = menu.size();
     bool abort = false;
     int selected = 0;
     do{
         system("cls");
         cout << "\n" << MenuTitle << "\n";
-        gotoxy(0, nOption*2 + 15);
+        gotoxy(0, nOption*2 + YPositionOfESC);
         cout << "Press ESC to back.";
 
         for(int i = 0; i < nOption; ++i){

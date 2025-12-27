@@ -455,24 +455,35 @@ public:
         // if user click ESC
         if(selectedEvent == -1)
         {
-            eventsMenu.clear();
             return -1;
         }
         // when user choose event , then make him choose ticket type of event and also show event details
-
-        int selectedTicketType = displayMenu(vector<string>{"1-VIP\n", "2-Regular\n", "3-Economic\n"},"Choose your ticket type",
-                                             "Event details", eventManager.getEvent(selectedEvent)->viewDetails());
+        int selectedTicketType = displayMenu(vector<string>{"1-VIP\n", "2-Economic\n", "3-Regular\n", },"Choose your ticket type",
+                                             "Event details", eventManager.getEvent(selectedEvent)->viewDetails(),15);
         // if user click ESC
         if(selectedTicketType == -1)
         {
             return -1;
         }
-        // if user select event then we will show event details
-        //eventsMenu.clear();
-        while(true)
-        {
-
+        // navigate to purchase page
+        // ask from where to get Task ID
+        TicketTypePrice selectedTicketTypePrice;
+        switch (selectedTicketType){
+            case 1:
+                 selectedTicketTypePrice.type = TicketType::VIP;
+                 selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getVipTickets().price;
+                 break;
+            case 2:
+                 selectedTicketTypePrice.type = TicketType::Economic;
+                 selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getEconomicTickets().price;
+                 break;
+            case 3:
+                 selectedTicketTypePrice.type = TicketType::Regular;
+                 selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getRegularTickets().price;
+                 break;
         }
+        Ticket ticket(1,selectedEvent,1,selectedTicketTypePrice);
+        purchasePage(ticket);
     }
 
     int viewAdminMenu();
@@ -559,7 +570,15 @@ public:
         return allEvents;
     }
 
-    bool purchasePage(Ticket myTicket);
+    bool purchasePage(Ticket myTicket)
+    {
+        int selectedPaymentMethod = displayMenu(vector<string>{"1-Fawry Pay\n", "2-Credit Card\n"},"Choose your payment method",
+                                             "Ticket price ", "  " + to_string(myTicket.getTypePrice().price),7);
+        while(true)
+        {
+
+        }
+    }
 
     int viewLoginForm() {
         vector<Field> loginFormFields = {
