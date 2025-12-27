@@ -4,6 +4,7 @@
 #include <map>
 #include <algorithm>
 #include <cctype>
+#include <regex>
 
 #include "GenericMultiEditorForm.cpp"
 
@@ -256,6 +257,43 @@ struct LoginDTO {
 // };
 
 // ================= SERVICES =================
+class ValidationService {
+public:
+    static bool isValidEmail(const string& email)
+    {
+        // A Form of E-mail following IETF standards 
+        regex stdEmail("[^@.]+(.[^@.]+)?(@[A-Za-z0-9]+)(\\-[A-Za-z0-9]+)?(.[0-9]*[A-Za-z]+[0-9]*(\\-[A-Za-z0-9]+)?)+");
+        // If the user's email following the regex form return true, false otherwise 
+        return regex_match(email, stdEmail);
+    }
+
+    static bool isValidNum(const string& phoneNum)
+    {
+        // Standard form of Egyptian phone number
+        regex stdPhoneNum("(010|011|012|015)[0-9]{8}");
+        // If the user's phone number following the regex form return true, false otherwise 
+        return regex_match(phoneNum, stdPhoneNum);
+    }
+
+    static bool isValidUserName(const string& userName)
+    {
+        // User name should contain 4 to 20 characters
+        return (userName.size() <= 20 && userName.size() >= 3);
+        // {
+        //     // Return false if bigger than 20 or lower than 4
+        //     return false;
+        // }
+        
+        // // A Standard form for username
+        // regex stdUserName("([0-9_]*[a-zA-Z]+[_0-9]*[a-zA-Z]+[0-9_]*)");
+        // // If the user's username following the regex form return true, false otherwise 
+        // return regex_match(userName, stdUserName);
+    }
+
+    static bool isValidPassword(const string& password) {
+        return (password.size() >= 8);
+    }
+};
 
 class AuthenticationService {
 public:
@@ -345,7 +383,7 @@ private:
     Admin *currentAdmin = nullptr;
     Fan *currentFan = nullptr;
     UserType userType = UserType::NotAuth;
-
+    const string EMAIL_ALLOWED_CHARS = "A-Za-z0-9_@.%+-";
 public:
     void run(); // Main loop
 
@@ -388,13 +426,13 @@ public:
     bool viewRegisterForm() {
         vector<Field> registerFormFields = {
             {
-                "Name:",  30, "A-Za-z ",
+                "Name:",  20, "A-Za-z ",
                 [](void* user, const char* nameInput) {
                     ((Fan*) user)->setName(nameInput);
                 }
             },
             {
-                "Email:",    50, "A-Za-z0-9._%+-",
+                "Email:",    50, EMAIL_ALLOWED_CHARS,
                 [](void* user, const char* emailInput) {
                     ((Fan*) user)->setEmail(emailInput);
                 }
@@ -422,12 +460,33 @@ public:
         Fan fan;
         string errorMsg = "";
         bool cancelForm = false;
+        int errorCount = 0;
         do {
-            if(!showForm(&fan, registerFormFields, errorMsg))
+            if(!showForm(&fan, registerFormFields, errorMsg, errorCount))
                 cancelForm = true;
 
-            if (AuthenticationService::_register(fan)) return true;
-            else errorMsg= "Email is already in use, Please Try Again.";
+            // reset the errors    
+            errorCount = 0;
+            errorMsg = "";
+
+            if (!ValidationService::isValidEmail(fan.getEmail())) {
+                errorMsg += "\nEmail is not valid.";
+                ++errorCount;
+            }
+
+            if (!ValidationService::isValidUserName(fan.getName())) {
+                errorMsg += "\nThe Name Should be from 4 to 20 characters.";
+                ++errorCount;
+            }
+
+            if (!ValidationService::isValidPassword(fan.getPassword())) {
+                errorMsg += "\nThe Password Should be at least 8 characters.";
+                ++errorCount;
+            }
+            if (!errorCount){
+                if (AuthenticationService::_register(fan)) return true;
+                else {errorMsg+= "\nEmail is already in use, Please Try Again."; ++errorCount;};
+            }
         } while (!cancelForm);
         return false;
     }
@@ -449,7 +508,7 @@ public:
     int viewLoginForm() {
         vector<Field> loginFormFields = {
             {
-                "Email:", 50, "A-Za-z0-9._%+@-",
+                "Email:", 50, EMAIL_ALLOWED_CHARS,
                 [](void* user, const char* emailInput) {
                     ((LoginDTO *) user)->email = emailInput;
                 }

@@ -24,14 +24,14 @@ struct Field {
 
 void gotoxy(int x,int y);
 void textattr(int i);
-bool showForm(void* object, vector<Field>& fields, string errorMessage="");
+bool showForm(void* object, vector<Field>& fields, string errorMessage="", int errorCount = 0);
 void display(int nChar, char* arr, int cursor, int xPos, int yPos, int len);
 bool isCharAllowed(char ch, const string& regexStr);
-char** multiLineEditor(int* xPos, int* yPos, int* len, string* regexStrs, int N);
+char** multiLineEditor(int* xPos, int* yPos, int* len, string* regexStrs, int N, int errorCount = 0);
 int displayMenu(const vector<string>& menu, const string& MenuTitle = "=======Menu======");
 
 // Generic Form to fill an Object
-bool showForm(void* object, vector<Field>& fields, string errorMessage) {
+bool showForm(void* object, vector<Field>& fields, string errorMessage, int errorCount) {
     int n = fields.size();
     const int labelX = 2;
     const int inputX = 21;
@@ -62,7 +62,7 @@ bool showForm(void* object, vector<Field>& fields, string errorMessage) {
         gotoxy(xPos[0], yPos[0]);
     }
     
-    char** values = multiLineEditor(xPos, yPos, len, regexStrs, n);
+    char** values = multiLineEditor(xPos, yPos, len, regexStrs, n, errorCount);
     if (values == nullptr) return false;
 
     for (int i = 0; i < n; ++i) {
@@ -84,7 +84,7 @@ void textattr(int i)
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), i);
 }
 
-char** multiLineEditor(int* xPos, int* yPos, int* len, string* regexStrs, int N){
+char** multiLineEditor(int* xPos, int* yPos, int* len, string* regexStrs, int N, int errorCount){
     int index = 0;
 
     char** str = new char*[N];
@@ -98,7 +98,7 @@ char** multiLineEditor(int* xPos, int* yPos, int* len, string* regexStrs, int N)
         current[i] = first[i] = last[i] = str[i];
         display(0, nullptr, cursor[i], xPos[i], yPos[i], len[i]);
     }
-    gotoxy(0, yPos[N-1] + 3);
+    gotoxy(0, yPos[N-1] + errorCount + 3);
     cout << "Press ESC to back.";
     gotoxy(xPos[0], yPos[0]);
     while(true){
