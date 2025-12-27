@@ -2,9 +2,6 @@
 #include <string>
 #include <cstdio>
 #include <cstring>
-// #ifndef _NO_CPP_BYTE
-// #define _NO_CPP_BYTE
-// #endif
 #include <windows.h>
 #include <conio.h>
 #include <cstdlib>
@@ -16,8 +13,7 @@ using namespace std;
 struct Field {
     string label;
     int len;
-    char startRange, EndRange;
-
+    string regexStr;
     // void* is a Pointer to Something we don't know what its type yet
     // we will cast it to specific type when we use it inside
     // function<> allows you to store a function in a variable like PHP
@@ -28,7 +24,8 @@ void gotoxy(int x,int y);
 void textattr(int i);
 bool showForm(void* object, vector<Field>& fields, string errorMessage="");
 void display(int nChar, char* arr, int cursor, int xPos, int yPos, int len);
-char** multiLineEditor(int* xPos, int* yPos, int* len, char* SR, char* ER, int N);
+bool isCharAllowed(char ch, const string& regexStr);
+char** multiLineEditor(int* xPos, int* yPos, int* len, string* regexStrs, int N);
 int displayMenu(const vector<string>& menu, const string& MenuTitle = "=======Menu======");
 
 // Generic Form to fill an Object
@@ -41,8 +38,7 @@ bool showForm(void* object, vector<Field>& fields, string errorMessage) {
     int* xPos = new int[n];
     int* yPos = new int[n];
     int* len  = new int[n];
-    char* SR  = new char[n];
-    char* ER  = new char[n];
+    string* regexStrs = new string[n];
 
     system("cls");
 
@@ -55,8 +51,7 @@ bool showForm(void* object, vector<Field>& fields, string errorMessage) {
         xPos[i] = inputX;
         yPos[i] = y;
         len[i]  = fields[i].len;
-        SR[i]   = fields[i].startRange;
-        ER[i]   = fields[i].EndRange;
+        regexStrs[i] = fields[i].regexStr;
     }
 
     if (!errorMessage.empty()) {
@@ -65,7 +60,7 @@ bool showForm(void* object, vector<Field>& fields, string errorMessage) {
         gotoxy(xPos[0], yPos[0]);
     }
     
-    char** values = multiLineEditor(xPos, yPos, len, SR, ER, n);
+    char** values = multiLineEditor(xPos, yPos, len, regexStrs, n);
     if (values == nullptr) return false;
 
     for (int i = 0; i < n; ++i) {
@@ -87,7 +82,7 @@ void textattr(int i)
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), i);
 }
 
-char** multiLineEditor(int* xPos, int* yPos, int* len, char* SR, char* ER, int N){
+char** multiLineEditor(int* xPos, int* yPos, int* len, string* regexStrs, int N){
     int index = 0;
 
     char** str = new char*[N];
@@ -190,7 +185,7 @@ char** multiLineEditor(int* xPos, int* yPos, int* len, char* SR, char* ER, int N
             return str;
         }
         default:
-            if((last[index] == &str[index][len[index]]) || ch > ER[index] || ch < SR[index]){
+            if((last[index] == &str[index][len[index]]) || !isCharAllowed(ch, regexStrs[index])){
                 break;
             }
 
@@ -214,6 +209,24 @@ char** multiLineEditor(int* xPos, int* yPos, int* len, char* SR, char* ER, int N
 
 
     return str;
+}
+
+bool isCharAllowed(char ch, const string& regexStr) {
+    for (int i = 0; i < regexStr.size(); ++i) {
+        // Handle range like A-Z and
+        if (i + 2 < regexStr.size() && regexStr[i + 1] == '-') {
+            if (ch >= regexStr[i] && ch <= regexStr[i + 2])
+                return true;
+
+            i += 2; // skip "A-Z"
+        }
+        // Handle single character like M or F
+        else {
+            if (ch == regexStr[i])
+                return true;
+        }
+    }
+    return false;
 }
 
 void display(int nChar, char* str, int cursor, int xPos, int yPos, int len){

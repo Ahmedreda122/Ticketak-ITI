@@ -2,8 +2,8 @@
 #include <vector>
 #include <string>
 #include <map>
-#include <memory> // For smart pointers (optional, but good practice)
 #include <algorithm>
+#include <cctype>
 
 #include "GenericMultiEditorForm.cpp"
 
@@ -261,7 +261,7 @@ class AuthenticationService {
 public:
     // Logic uses FanManager and AdminManager to verify credentials
     // Returns Pointer to the Fan/Admin or nullptr for wrong credentials
-    static User *login(const LoginDTO &user, UserType userType) {
+    static User* login(const LoginDTO& user, UserType userType) {
         if (userType == UserType::Fan) {
             FanManager &fanManager = FanManager::getInstance();
             return fanManager.getFanByEmailPass(user.email, user.password);
@@ -272,7 +272,18 @@ public:
         return nullptr;
     }
 
-    static bool registerUser(User user, UserType type);
+    // Only the Fan can register, Admin Added by developer
+    static bool _register(Fan& fan) {
+        FanManager& fanManager = FanManager::getInstance();
+
+        // If email is not used before
+        if (fanManager.getFanByEmail(fan.getEmail()) == nullptr){
+            fan.setId(fanManager.getSize());
+            fanManager.addFan(fan);
+            return true;
+        } 
+        return false;
+    }
 };
 
 // ================= PAYMENT STRATEGY PATTERN =================
@@ -338,14 +349,14 @@ public:
     void run(); // Main loop
 
     // Make current Admin Points at an Admin returned from Login Method (AdminManager.admins vector)
-    void setCurrentAdmin(Admin &admin) {
+    void setCurrentAdmin(Admin& admin) {
         currentAdmin = &admin;
         currentFan = nullptr;
         userType = UserType::Admin;
     }
 
     // Make current Fan Points at a Fan returned from Login Method (FanManager.Fans vector)
-    void setCurrentFan(Fan &fan) {
+    void setCurrentFan(Fan& fan) {
         currentFan = &fan;
         currentAdmin = nullptr;
         userType = UserType::Fan;
@@ -376,50 +387,48 @@ public:
     bool viewRegisterForm() {
         vector<Field> registerFormFields = {
             {
-                "Name:",    30, 32, 126,
-                [](void *user, const char *nameInput) {
-                    ((Fan *) user)->setName(nameInput);
+                "Name:",  30, "A-Za-z ",
+                [](void* user, const char* nameInput) {
+                    ((Fan*) user)->setName(nameInput);
                 }
             },
             {
-                "Email:",    50, 33, 126,
-                [](void *user, const char *emailInput) {
-                    ((Fan *) user)->setEmail(emailInput);
+                "Email:",    50, "A-Za-z0-9._%+-",
+                [](void* user, const char* emailInput) {
+                    ((Fan*) user)->setEmail(emailInput);
                 }
             },
             {
-                "Password:", 50, 32, 126,
-                [](void *user, const char *pass) {
-                    ((Fan *) user)->setPassword(pass);
+                "Password:", 50, " -~",
+                [](void* user, const char* pass) {
+                    ((Fan*) user)->setPassword(pass);
                 }
             },
             {
-                "Gender(1=>M|2=>F):",    1, '1', '2',
-                [](void *user, const char *gender) {
-                    ((Fan *) user)->setGender(gender[0] == 1 ? 'M' : 'F');
+                "Gender(M|F):", 1, "MFmf",
+                [](void* user, const char* gender) {
+                    ((Fan*) user)->setGender(toupper(gender[0]));
                 }
             },
             {
-                "Phone:", 11, '0', '9',
-                [](void *user, const char *phone) {
-                    ((Fan *) user)->setPhoneNumber(phone);
+                "Phone:", 11, "0-9",
+                [](void* user, const char* phone) {
+                    ((Fan*) user)->setPhoneNumber(phone);
                 }
             }
         };
-
+        
         Fan fan;
         string errorMsg = "";
-        if(!showForm(&fan, registerFormFields, errorMsg))
-            return false;
-        FanManager& fanManager = FanManager::getInstance();
-
-        if(fanManager.getFanByEmail(fan.getEmail()) == nullptr)
-        {
-            fan.setId(fanManager.getSize());
-            fanManager.addFan(fan);
-        }
-
-        return true;
+        bool cancelForm = false;
+        do {
+            if(!showForm(&fan, registerFormFields, errorMsg))
+                cancelForm = true;
+    
+            if (AuthenticationService::_register(fan)) return true;
+            else errorMsg= "Email is already in use, Please Try Again.";
+        } while (!cancelForm);
+        return false;
     }
 
     void searchEventsByCategory(Category category);
@@ -429,14 +438,14 @@ public:
     int viewLoginForm() {
         vector<Field> loginFormFields = {
             {
-                "Email:",    50, 33, 126,
-                [](void *user, const char *emailInput) {
+                "Email:", 50, "A-Za-z0-9._%+@-",
+                [](void* user, const char* emailInput) {
                     ((LoginDTO *) user)->email = emailInput;
                 }
             },
             {
-                "Password:", 50, 32, 126,
-                [](void *user, const char *pass) {
+                "Password:", 50, " -~",
+                [](void* user, const char* pass) {
                     ((LoginDTO *) user)->password = pass;
                 }
             }
@@ -465,11 +474,11 @@ public:
                 currentUser = AuthenticationService::login(user, userType);
                 if (currentUser != nullptr) {
                     if (userType == UserType::Fan) {
-                        Fan *fan = static_cast<Fan *>(currentUser);
+                        Fan* fan = static_cast<Fan*>(currentUser);
                         setCurrentFan(*fan);
                         return 1;
                     } else if (userType == UserType::Admin) {
-                        Admin *admin = static_cast<Admin *>(currentUser);
+                        Admin* admin = static_cast<Admin*>(currentUser);
                         setCurrentAdmin(*admin);
                         return 2;
                     }
@@ -489,7 +498,6 @@ void SystemManager::run() {
     vector<string> menu = {"1- Login\n", "2- Register\n"};
 
     while (true) {
-
         int choice = displayMenu(menu, "====================Welcome to Ticketak======================");
 
         switch (choice) {
