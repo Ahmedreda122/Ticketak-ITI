@@ -354,6 +354,11 @@ public:
     CreditCard(string n, string num, string c, string exp)
             : name(n), cardNumber(num), cvv(c), expiryDate(exp) {}
 
+    void setName(const string& n) { name = n; }
+    void setCardNumber(const string& num) { cardNumber = num; }
+    void setCvv(const string& c) { cvv = c; }
+    void setExpiryDate(const string& exp) { expiryDate = exp; }
+
     bool pay(double amount) override {
         cout << "Paying " << amount << " via CreditCard " << cardNumber << ".\n";
         return true;
@@ -592,8 +597,39 @@ public:
         // User select to pay with Credit Card
         else if(selectedPaymentMethod == 2)
         {
-            // here you should take real data of credit card from user in form
-            PaymentMethod* creditCard = new CreditCard("credit 1","1","cvv1","10-1-207");
+            vector<Field> creditCardFields = {
+                {
+                    "Cardholder Name:", 30, "A-Za-z ",
+                    [](void* cc, const char* input) {
+                        ((CreditCard*)cc)->setName(input);
+                    }
+                },
+                {
+                    "Card Number:", 16, "0-9",
+                    [](void* cc, const char* input) {
+                        ((CreditCard*)cc)->setCardNumber(input);
+                    }
+                },
+                {
+                    "CVV:", 4, "0-9",
+                    [](void* cc, const char* input) {
+                        ((CreditCard*)cc)->setCvv(input);
+                    }
+                },
+                {
+                    "Exp Date(MM-YYYY):", 7, "0-9-",
+                    [](void* cc, const char* input) {
+                        ((CreditCard*)cc)->setExpiryDate(input);
+                    }
+                }
+            };
+            PaymentMethod* creditCard = new CreditCard("","","","");
+            // Show the form to the user
+            if (!showForm(creditCard, creditCardFields)) {
+                cout << "Credit card entry canceled!\n";
+                return false;
+            }
+            system("cls");
             paymentService.setPaymentMethod(creditCard);
         }
 
