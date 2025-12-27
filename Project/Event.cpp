@@ -5,7 +5,7 @@
 
 #include "Ticket.cpp"
 
-using namespace std; 
+using namespace std;
 
 enum class Category {
     Sports,
@@ -35,6 +35,11 @@ public:
     void expireTickets();
 
     int getId() const { return id; }
+    Category getCategory() const {
+        return category;
+    }
     // Helper to populate tickets
     void addTicket(Ticket t) { tickets.push_back(t); }
 };
+
+
