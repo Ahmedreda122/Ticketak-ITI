@@ -106,7 +106,7 @@ struct LoginDTO {
 // // ================= USER HIERARCHY =================
 
 // class User {
-// protected: 
+// protected:
 //     string email;
 //     string password;
 //     char gender;
@@ -281,7 +281,7 @@ public:
             fan.setId(fanManager.getSize());
             fanManager.addFan(fan);
             return true;
-        } 
+        }
         return false;
     }
 };
@@ -345,6 +345,7 @@ private:
     Admin *currentAdmin = nullptr;
     Fan *currentFan = nullptr;
     UserType userType = UserType::NotAuth;
+
 public:
     void run(); // Main loop
 
@@ -417,21 +418,31 @@ public:
                 }
             }
         };
-        
+
         Fan fan;
         string errorMsg = "";
         bool cancelForm = false;
         do {
             if(!showForm(&fan, registerFormFields, errorMsg))
                 cancelForm = true;
-    
+
             if (AuthenticationService::_register(fan)) return true;
             else errorMsg= "Email is already in use, Please Try Again.";
         } while (!cancelForm);
         return false;
     }
 
-    void searchEventsByCategory(Category category);
+    vector<Event> searchEventsByCategory(Category category){
+        EventManager &eventManager = EventManager::getInstance();
+        vector<Event> allEvents = eventManager.getEvents();
+        vector<Event> matchedEvents;
+        for (const Event& event : allEvents) {
+            if (event.getCategory() == category) {
+                matchedEvents.push_back(event);
+            }
+        }
+        return allEvents;
+    }
 
     bool purchasePage(Ticket myTicket);
 
