@@ -1,5 +1,5 @@
 #pragma once
-
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -12,8 +12,11 @@ enum class Category {
     Parties,
     Carnivals
 };
-
-
+struct TicketTypePriceQuantity {
+     TicketType type;
+     double price;
+     int quantity;
+ };
 struct Date {
     int day, month, year;
 };
@@ -25,12 +28,57 @@ private:
     Category category;
     int capacity;
     int availableTickets;
+    // tickets vector should be removed as we will store each ticket type and number of tickets available of it instead
     vector<Ticket> tickets; // Composition: Event contains Tickets
+    TicketTypePriceQuantity vipTickets;
+    TicketTypePriceQuantity economicTickets;
+    TicketTypePriceQuantity regularTickets;
     Date date;
 
 public:
+    Event(int id,string name,Category category,int capacity,int availableTickets,Date date,
+          TicketTypePriceQuantity vipTickets,TicketTypePriceQuantity economicTickets,TicketTypePriceQuantity regularTickets)
+    {
+        this->id = id;
+        this->name = name;
+        this->category = category;
+        this->capacity = capacity;
+        this->availableTickets = availableTickets;
+        this->date = date;
+        this->vipTickets = vipTickets;
+        this->economicTickets = economicTickets;
+        this->regularTickets = regularTickets;
+    }
+    string dateToString(Date date) const{
+        string d = (date.day < 10 ? "0" : "") + to_string(date.day);
+        string m = (date.month < 10 ? "0" : "") + to_string(date.month);
+        return d + "-" + m + "-" + to_string(date.year);
+    }
+    string categoryToString(Category category) const{
+        switch(category) {
+            case Category::Sports: return "Sports";
+            case Category::Parties: return "Parties";
+            case Category::Carnivals: return "Carnivals";
+            default: return "Unknown";
+        }
+    }
     bool bookEvent(int fanId, int ticketId); // Logic to link fan to ticket
-    void viewDetails() const;
+    string viewDetailsBreifly()
+    {
+        return "Name: "+name+" , Category: "+categoryToString(category)+" , Date: "+dateToString(date);
+    }
+    void viewDetails() const
+    {
+        cout<<"Event #"<<id<<endl;
+        cout<<"Name: "<<name<<endl;
+        cout<<"Category: "<<categoryToString(category)<<endl;
+        cout<<"Date: "<<dateToString(date)<<endl;
+        cout<<"Total Seats: "<<capacity<<endl;
+        cout<<"Available Seats: "<<availableTickets<<endl;
+        cout<<"VIP Ticket Price: "<<vipTickets.price<<" , VIP Available Tickets: "<<vipTickets.quantity<<endl;
+        cout<<"Regular Ticket Price: "<<regularTickets.price<<" , Regular Available Tickets: "<<regularTickets.quantity<<endl;
+        cout<<"Economic Ticket Price: "<<economicTickets.price<<" , Economic Available Tickets: "<<economicTickets.quantity<<endl;
+    }
     string getEventStatus();
     void expireTickets();
 
@@ -41,5 +89,3 @@ public:
     // Helper to populate tickets
     void addTicket(Ticket t) { tickets.push_back(t); }
 };
-
-

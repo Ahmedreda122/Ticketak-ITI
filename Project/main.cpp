@@ -417,7 +417,54 @@ public:
         return userType == UserType::Fan;
     }
 
-    void viewEventsPage();
+    int viewEventsPage() {
+        EventManager& eventManager = EventManager::getInstance();
+        vector<string> eventsMenu;
+        // Add events for testing
+        // VIP, Economic, Regular ticket info for each event and date of event
+        TicketTypePriceQuantity vip1{TicketType::VIP, 500.0, 50};
+        TicketTypePriceQuantity eco1{TicketType::Economic, 200.0, 150};
+        TicketTypePriceQuantity reg1{TicketType::Regular, 100.0, 300};
+        Date date1{10,1,2026};
+
+        TicketTypePriceQuantity vip2{TicketType::VIP, 1000.0, 30};
+        TicketTypePriceQuantity eco2{TicketType::Economic, 400.0, 70};
+        TicketTypePriceQuantity reg2{TicketType::Regular, 150.0, 200};
+        Date date2{15,6,2026};
+
+        TicketTypePriceQuantity vip3{TicketType::VIP, 800.0, 40};
+        TicketTypePriceQuantity eco3{TicketType::Economic, 300.0, 120};
+        TicketTypePriceQuantity reg3{TicketType::Regular, 120.0, 250};
+        Date date3{20,12,2026};
+
+        Event event1(1, "Rock Concert", Category::Parties, 500, 500, date1, vip1, eco1, reg1);
+        Event event2(2, "Football Match", Category::Sports, 300, 300, date2, vip2, eco2, reg2);
+        Event event3(3, "City Carnival", Category::Carnivals, 410, 410, date3, vip3, eco3, reg3);
+
+        eventManager.addEvent(event1);
+        eventManager.addEvent(event2);
+        eventManager.addEvent(event3);
+
+        // Loop throught events
+        for(int i=0;i<eventManager.getEvents().size();i++)
+        {
+            Event tempEvent = eventManager.getEvents()[i];
+            eventsMenu.push_back(tempEvent.viewDetailsBreifly());
+        }
+        int eventSelected = displayMenu(eventsMenu,"Current Events");
+        // if user click ESC
+        if(eventSelected == -1)
+        {
+            return -1;
+        }
+        system("cls");
+        // if user select event then we will show event details
+        eventManager.getEvent(eventSelected)->viewDetails();
+        while(true)
+        {
+
+        }
+    }
 
     int viewAdminMenu();
 
@@ -565,7 +612,7 @@ public:
 
 
 void SystemManager::run() {
-    vector<string> menu = {"1- Login\n", "2- Register\n"};
+    vector<string> menu = {"1- Login\n", "2- Register\n", "3- View Events\n"};
 
     while (true) {
         int choice = displayMenu(menu, "====================Welcome to Ticketak======================");
@@ -596,6 +643,17 @@ void SystemManager::run() {
             case 2: { // Register
                 viewRegisterForm();
                 break;
+            }
+            case 3: { // Events Page
+                int result = viewEventsPage();
+                 switch (result) {
+                     // Error occur so return to main menu
+                     case -1:
+                         {
+                             break;
+                         }
+                 }
+                 break;
             }
             case -1: {
                 system("cls");
