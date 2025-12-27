@@ -67,8 +67,14 @@ public:
     {
         return "Name: "+name+" , Category: "+categoryToString(category)+" , Date: "+dateToString(date);
     }
-    void viewDetails() const
+    string viewDetails() const
     {
+        return "  Event #" + to_string(id) + "\n  Name: " + name + "\n  Category: " + categoryToString(category) +
+        "\n  Date: " + dateToString(date) + "\n  Total Seats: " + to_string(capacity) + "\n  Available Seats: " + to_string(availableTickets)
+        + "\n  VIP Ticket Price: " + to_string(vipTickets.price) + " , VIP Available Tickets: " + to_string(vipTickets.quantity)
+        + "\n  Regular Ticket Price: " + to_string(regularTickets.price) + " , Regular Available Tickets: " + to_string(regularTickets.quantity)
+        + "\n  Economic Ticket Price: " + to_string(economicTickets.price) + " , Economic Available Tickets: " + to_string(economicTickets.quantity);
+        /*
         cout<<"Event #"<<id<<endl;
         cout<<"Name: "<<name<<endl;
         cout<<"Category: "<<categoryToString(category)<<endl;
@@ -78,6 +84,7 @@ public:
         cout<<"VIP Ticket Price: "<<vipTickets.price<<" , VIP Available Tickets: "<<vipTickets.quantity<<endl;
         cout<<"Regular Ticket Price: "<<regularTickets.price<<" , Regular Available Tickets: "<<regularTickets.quantity<<endl;
         cout<<"Economic Ticket Price: "<<economicTickets.price<<" , Economic Available Tickets: "<<economicTickets.quantity<<endl;
+        */
     }
     string getEventStatus();
     void expireTickets();

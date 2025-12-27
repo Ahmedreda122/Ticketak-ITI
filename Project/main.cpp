@@ -451,15 +451,24 @@ public:
             Event tempEvent = eventManager.getEvents()[i];
             eventsMenu.push_back(tempEvent.viewDetailsBreifly());
         }
-        int eventSelected = displayMenu(eventsMenu,"Current Events");
+        int selectedEvent = displayMenu(eventsMenu,"Current Events");
         // if user click ESC
-        if(eventSelected == -1)
+        if(selectedEvent == -1)
+        {
+            eventsMenu.clear();
+            return -1;
+        }
+        // when user choose event , then make him choose ticket type of event and also show event details
+
+        int selectedTicketType = displayMenu(vector<string>{"1-VIP\n", "2-Regular\n", "3-Economic\n"},"Choose your ticket type",
+                                             "Event details", eventManager.getEvent(selectedEvent)->viewDetails());
+        // if user click ESC
+        if(selectedTicketType == -1)
         {
             return -1;
         }
-        system("cls");
         // if user select event then we will show event details
-        eventManager.getEvent(eventSelected)->viewDetails();
+        //eventsMenu.clear();
         while(true)
         {
 
