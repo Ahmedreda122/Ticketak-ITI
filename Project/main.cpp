@@ -259,38 +259,35 @@ struct LoginDTO {
 // ================= SERVICES =================
 class ValidationService {
 public:
-    static bool isValidEmail(const string& email)
-    {
+    static bool isValidEmail(const string &email) {
         // A Form of E-mail following IETF standards 
         regex stdEmail("[^@.]+(.[^@.]+)?(@[A-Za-z0-9]+)(\\-[A-Za-z0-9]+)?(.[0-9]*[A-Za-z]+[0-9]*(\\-[A-Za-z0-9]+)?)+");
         // If the user's email following the regex form return true, false otherwise 
         return regex_match(email, stdEmail);
     }
 
-    static bool isValidNum(const string& phoneNum)
-    {
+    static bool isValidNum(const string &phoneNum) {
         // Standard form of Egyptian phone number
         regex stdPhoneNum("(010|011|012|015)[0-9]{8}");
         // If the user's phone number following the regex form return true, false otherwise 
         return regex_match(phoneNum, stdPhoneNum);
     }
 
-    static bool isValidUserName(const string& userName)
-    {
+    static bool isValidUserName(const string &userName) {
         // User name should contain 4 to 20 characters
         return (userName.size() <= 20 && userName.size() >= 3);
         // {
         //     // Return false if bigger than 20 or lower than 4
         //     return false;
         // }
-        
+
         // // A Standard form for username
         // regex stdUserName("([0-9_]*[a-zA-Z]+[_0-9]*[a-zA-Z]+[0-9_]*)");
         // // If the user's username following the regex form return true, false otherwise 
         // return regex_match(userName, stdUserName);
     }
 
-    static bool isValidPassword(const string& password) {
+    static bool isValidPassword(const string &password) {
         return (password.size() >= 8);
     }
 };
@@ -299,7 +296,7 @@ class AuthenticationService {
 public:
     // Logic uses FanManager and AdminManager to verify credentials
     // Returns Pointer to the Fan/Admin or nullptr for wrong credentials
-    static User* login(const LoginDTO& user, UserType userType) {
+    static User *login(const LoginDTO &user, UserType userType) {
         if (userType == UserType::Fan) {
             FanManager &fanManager = FanManager::getInstance();
             return fanManager.getFanByEmailPass(user.email, user.password);
@@ -311,11 +308,11 @@ public:
     }
 
     // Only the Fan can register, Admin Added by developer
-    static bool _register(Fan& fan) {
-        FanManager& fanManager = FanManager::getInstance();
+    static bool _register(Fan &fan) {
+        FanManager &fanManager = FanManager::getInstance();
 
         // If email is not used before
-        if (fanManager.getFanByEmail(fan.getEmail()) == nullptr){
+        if (fanManager.getFanByEmail(fan.getEmail()) == nullptr) {
             fan.setId(fanManager.getSize());
             fanManager.addFan(fan);
             return true;
@@ -384,18 +381,25 @@ private:
     Fan *currentFan = nullptr;
     UserType userType = UserType::NotAuth;
     const string EMAIL_ALLOWED_CHARS = "A-Za-z0-9_@.%+-";
+
+    bool isExistingEmail(string email) {
+        FanManager &fanManager = FanManager::getInstance();
+        AdminManager &adminManager = AdminManager::getInstance();
+        return fanManager.getFanByEmail(email) != nullptr || adminManager.getAdminByEmail(email) != nullptr;
+    }
+
 public:
     void run(); // Main loop
 
     // Make current Admin Points at an Admin returned from Login Method (AdminManager.admins vector)
-    void setCurrentAdmin(Admin& admin) {
+    void setCurrentAdmin(Admin &admin) {
         currentAdmin = &admin;
         currentFan = nullptr;
         userType = UserType::Admin;
     }
 
     // Make current Fan Points at a Fan returned from Login Method (FanManager.Fans vector)
-    void setCurrentFan(Fan& fan) {
+    void setCurrentFan(Fan &fan) {
         currentFan = &fan;
         currentAdmin = nullptr;
         userType = UserType::Fan;
@@ -425,36 +429,36 @@ public:
 
     bool viewRegisterForm() {
         vector<Field> registerFormFields = {
-            {
-                "Name:",  20, "A-Za-z ",
-                [](void* user, const char* nameInput) {
-                    ((Fan*) user)->setName(nameInput);
+                {
+                        "Name:",        20, "A-Za-z ",
+                        [](void *user, const char *nameInput) {
+                            ((Fan *) user)->setName(nameInput);
+                        }
+                },
+                {
+                        "Email:",       50, EMAIL_ALLOWED_CHARS,
+                        [](void *user, const char *emailInput) {
+                            ((Fan *) user)->setEmail(emailInput);
+                        }
+                },
+                {
+                        "Password:",    50, " -~",
+                        [](void *user, const char *pass) {
+                            ((Fan *) user)->setPassword(pass);
+                        }
+                },
+                {
+                        "Gender(M|F):", 1,  "MFmf",
+                        [](void *user, const char *gender) {
+                            ((Fan *) user)->setGender(toupper(gender[0]));
+                        }
+                },
+                {
+                        "Phone:",       11, "0-9",
+                        [](void *user, const char *phone) {
+                            ((Fan *) user)->setPhoneNumber(phone);
+                        }
                 }
-            },
-            {
-                "Email:",    50, EMAIL_ALLOWED_CHARS,
-                [](void* user, const char* emailInput) {
-                    ((Fan*) user)->setEmail(emailInput);
-                }
-            },
-            {
-                "Password:", 50, " -~",
-                [](void* user, const char* pass) {
-                    ((Fan*) user)->setPassword(pass);
-                }
-            },
-            {
-                "Gender(M|F):", 1, "MFmf",
-                [](void* user, const char* gender) {
-                    ((Fan*) user)->setGender(toupper(gender[0]));
-                }
-            },
-            {
-                "Phone:", 11, "0-9",
-                [](void* user, const char* phone) {
-                    ((Fan*) user)->setPhoneNumber(phone);
-                }
-            }
         };
 
         Fan fan;
@@ -462,7 +466,7 @@ public:
         bool cancelForm = false;
         int errorCount = 0;
         do {
-            if(!showForm(&fan, registerFormFields, errorMsg, errorCount))
+            if (!showForm(&fan, registerFormFields, errorMsg, errorCount))
                 cancelForm = true;
 
             // reset the errors    
@@ -471,6 +475,11 @@ public:
 
             if (!ValidationService::isValidEmail(fan.getEmail())) {
                 errorMsg += "\nEmail is not valid.";
+                ++errorCount;
+            }
+
+            if (isExistingEmail(fan.getEmail())) {
+                errorMsg += "\nEmail is already in use.";
                 ++errorCount;
             }
 
@@ -483,19 +492,22 @@ public:
                 errorMsg += "\nThe Password Should be at least 8 characters.";
                 ++errorCount;
             }
-            if (!errorCount){
+            if (!errorCount) {
                 if (AuthenticationService::_register(fan)) return true;
-                else {errorMsg+= "\nEmail is already in use, Please Try Again."; ++errorCount;};
+                else {
+                    errorMsg += "\nEmail is already in use, Please Try Again.";
+                    ++errorCount;
+                };
             }
         } while (!cancelForm);
         return false;
     }
 
-    vector<Event> searchEventsByCategory(Category category){
+    vector<Event> searchEventsByCategory(Category category) {
         EventManager &eventManager = EventManager::getInstance();
         vector<Event> allEvents = eventManager.getEvents();
         vector<Event> matchedEvents;
-        for (const Event& event : allEvents) {
+        for (const Event &event: allEvents) {
             if (event.getCategory() == category) {
                 matchedEvents.push_back(event);
             }
@@ -507,18 +519,18 @@ public:
 
     int viewLoginForm() {
         vector<Field> loginFormFields = {
-            {
-                "Email:", 50, EMAIL_ALLOWED_CHARS,
-                [](void* user, const char* emailInput) {
-                    ((LoginDTO *) user)->email = emailInput;
+                {
+                        "Email:",    50, EMAIL_ALLOWED_CHARS,
+                        [](void *user, const char *emailInput) {
+                            ((LoginDTO *) user)->email = emailInput;
+                        }
+                },
+                {
+                        "Password:", 50, " -~",
+                        [](void *user, const char *pass) {
+                            ((LoginDTO *) user)->password = pass;
+                        }
                 }
-            },
-            {
-                "Password:", 50, " -~",
-                [](void* user, const char* pass) {
-                    ((LoginDTO *) user)->password = pass;
-                }
-            }
         };
 
         bool abortLoginFormFill = false;
@@ -544,11 +556,11 @@ public:
                 currentUser = AuthenticationService::login(user, userType);
                 if (currentUser != nullptr) {
                     if (userType == UserType::Fan) {
-                        Fan* fan = static_cast<Fan*>(currentUser);
+                        Fan *fan = static_cast<Fan *>(currentUser);
                         setCurrentFan(*fan);
                         return 1;
                     } else if (userType == UserType::Admin) {
-                        Admin* admin = static_cast<Admin*>(currentUser);
+                        Admin *admin = static_cast<Admin *>(currentUser);
                         setCurrentAdmin(*admin);
                         return 2;
                     }
@@ -579,15 +591,14 @@ void SystemManager::run() {
                     // Returning to main menu
                     case -1:
                         break;
-                    // Fan Logs in
-                    case 1:
-                    {
+                        // Fan Logs in
+                    case 1: {
                         break;
                     }
-                    // Admin Logs in
-                    case 2:
-                    {
-                        cout << "I AM ADMIN"; return;
+                        // Admin Logs in
+                    case 2: {
+                        cout << "I AM ADMIN";
+                        return;
                         break;
                     }
                 }
