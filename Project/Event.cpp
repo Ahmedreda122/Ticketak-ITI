@@ -48,10 +48,6 @@ public:
         this->vipTickets = vipTickets;
         this->economicTickets = economicTickets;
         this->regularTickets = regularTickets;
-        for(int i=0;i<3;i++)
-        {
-            tickets.push_back(Ticket("i"+to_string(i),1,1,TicketTypePrice{TicketType::Economic,200}));
-        }
     }
     const TicketTypePriceQuantity& getVipTickets() const {
         return vipTickets;
