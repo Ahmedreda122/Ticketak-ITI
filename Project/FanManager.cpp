@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Fan.cpp"
 #include <string>
 #include <algorithm>

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "User.cpp"
 #include "Ticket.cpp"
 #include <vector>

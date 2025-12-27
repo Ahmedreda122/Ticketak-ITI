@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -25,9 +27,8 @@ public:
         events.push_back(e);
     }
 
-    const vector<Event>& getEvents() const {
-        return events;
-    }
+    vector<Event>& getEvents() { return events; }
+    const vector<Event>& getEvents() const { return events; }
 
     Event* getEvent(int ID) {
         auto it = find_if(events.begin(), events.end(),
