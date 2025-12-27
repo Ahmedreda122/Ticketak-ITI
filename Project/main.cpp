@@ -574,6 +574,8 @@ public:
     {
         int selectedPaymentMethod = displayMenu(vector<string>{"1-Fawry Pay\n", "2-Credit Card\n"},"Choose your payment method",
                                              "Ticket price ", "  " + to_string(myTicket.getTypePrice().price),7);
+
+        // handle ESC case
         while(true)
         {
 
