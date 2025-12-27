@@ -38,7 +38,10 @@ public:
         this->typePrice = typePrice;
         status = TicketStatus::Available;
     }
-    void changeStatus(TicketStatus status);
+    void changeStatus(TicketStatus status)
+    {
+        this->status = status;
+    }
     string getId() {return id; }
     int getEventId() {return eventId; }
     int getFanId() {return fanId; }

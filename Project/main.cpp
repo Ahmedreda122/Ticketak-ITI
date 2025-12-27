@@ -371,7 +371,6 @@ public:
 
     bool processPayment(double amount) {
         if (paymentMethod) {
-                //cout<<"process"<<endl;
             return paymentMethod->pay(amount);
         }
         return false;
