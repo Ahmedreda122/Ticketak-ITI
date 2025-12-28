@@ -12,6 +12,7 @@ private:
 public:
     void buyTicket(Ticket myTicket);
     vector<Ticket> viewMyTickets();
+    int getId() { return id; }
     void setId(int _id)
     {
         id = _id;

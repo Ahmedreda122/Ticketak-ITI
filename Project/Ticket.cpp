@@ -30,6 +30,8 @@ private:
     TicketStatus status;
 
 public:
+    Ticket() : Ticket("0", 0, 0, TicketTypePrice{TicketType::Economic, 0}) {}
+
     Ticket(string id, int eventId, int fanId,TicketTypePrice typePrice)
     {
         this->id = id;
@@ -58,5 +60,9 @@ public:
     }
 
     // Getters and Setters
+    void setId(string id) { this->id = id; }
+    void setEventId(int eventId) { this->eventId = eventId; }
     void setFanId(int id) { fanId = id; }
+    void setTicketTypePrice(TicketTypePrice typePrice) { this->typePrice = typePrice; }
+    void setTicketStatus(TicketStatus status) { this->status = status; }
 };

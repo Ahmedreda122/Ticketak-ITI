@@ -443,9 +443,9 @@ public:
         TicketTypePriceQuantity reg3{TicketType::Regular, 120.0, 250};
         Date date3{20,12,2026};
 
-        Event event1(1, "Rock Concert", Category::Parties, 500, 500, date1, vip1, eco1, reg1);
-        Event event2(2, "Football Match", Category::Sports, 300, 300, date2, vip2, eco2, reg2);
-        Event event3(3, "City Carnival", Category::Carnivals, 410, 410, date3, vip3, eco3, reg3);
+        Event event1(1, "Rock Concert", Category::Parties, date1, vip1, eco1, reg1);
+        Event event2(2, "Football Match", Category::Sports, date2, vip2, eco2, reg2);
+        Event event3(3, "City Carnival", Category::Carnivals, date3, vip3, eco3, reg3);
 
         eventManager.addEvent(event1);
         eventManager.addEvent(event2);
@@ -489,8 +489,8 @@ public:
                  break;
         }
         // remember to pass real fan id and current fan to ticket
-        Ticket ticket("1",selectedEvent,1,selectedTicketTypePrice);
-        purchasePage(ticket);
+        //Ticket ticket("1",selectedEvent,1,selectedTicketTypePrice);
+        purchasePage(selectedEvent,selectedTicketTypePrice);
     }
 
     int viewAdminMenu();
@@ -577,10 +577,10 @@ public:
         return allEvents;
     }
 
-    bool purchasePage(Ticket myTicket)
+    bool purchasePage(int selectedEventId , TicketTypePrice selectedTicketTypePrice)
     {
         int selectedPaymentMethod = displayMenu(vector<string>{"1-Fawry Pay\n", "2-Credit Card\n"},"Choose your payment method",
-                                             "Ticket price ", "  " + to_string(myTicket.getTypePrice().price),7);
+                                             "Ticket price ", "  " + to_string(selectedTicketTypePrice.price),7);
         PaymentService paymentService;
         system("cls");
         // handle ESC case
@@ -634,15 +634,24 @@ public:
         }
 
         // pay for ticket
-        paymentService.processPayment(myTicket.getPrice());
+        paymentService.processPayment(selectedTicketTypePrice.price);
 
         // after pay for ticket we will book ticket for that event
         EventManager& eventManager = EventManager::getInstance();
-        Event* event = eventManager.getEvent(myTicket.getEventId());
-        event->bookEvent(myTicket.getFanId() , stoi(myTicket.getId()));
+        Event* event = eventManager.getEvent(selectedEventId);
+        Ticket createdTicket = event->bookEvent(1 , selectedTicketTypePrice);
+        // case booking is failed
+        if(createdTicket.getId() == "0")
+        {
+            display(43,"Unavailable tickets please try again later.",43,0,2,50);
+            while(true)
+            {
+            }
+            return false;
+        }
         while(true)
         {
-
+            cout<<"booking done"<<endl;
         }
     }
 

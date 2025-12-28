@@ -36,18 +36,18 @@ private:
     Date date;
 
 public:
-    Event(int id,string name,Category category,int capacity,int availableTickets,Date date,
+    Event(int id,string name,Category category,Date date,
           TicketTypePriceQuantity vipTickets,TicketTypePriceQuantity economicTickets,TicketTypePriceQuantity regularTickets)
     {
         this->id = id;
         this->name = name;
         this->category = category;
-        this->capacity = capacity;
-        this->availableTickets = availableTickets;
         this->date = date;
         this->vipTickets = vipTickets;
         this->economicTickets = economicTickets;
         this->regularTickets = regularTickets;
+        this->capacity = vipTickets.quantity + economicTickets.quantity + regularTickets.quantity;
+        availableTickets = capacity;
     }
     const TicketTypePriceQuantity& getVipTickets() const {
         return vipTickets;
@@ -75,10 +75,46 @@ public:
         }
     }
     // Logic to link fan to ticket
-    bool bookEvent(int fanId, int ticketId)
+    // Note if returned ticket has id="0" , then booking operation is failed
+    Ticket bookEvent(int fanId, TicketTypePrice typePrice)
     {
-        // need to implement logic
-        return true;
+        Ticket createdTicket;
+        switch (typePrice.type) {
+            case TicketType::VIP:
+                if(vipTickets.quantity <= 0)
+                {
+                    return Ticket();
+                }
+                vipTickets.quantity--;
+                break;
+            case TicketType::Economic:
+                if(economicTickets.quantity <= 0)
+                {
+                    return Ticket();
+                }
+                economicTickets.quantity--;
+                break;
+            case TicketType::Regular:
+                if(regularTickets.quantity <= 0)
+                {
+                    return Ticket();
+                }
+                regularTickets.quantity--;
+                break;
+            default:
+                return Ticket();
+                break;
+        }
+        availableTickets--;
+
+        createdTicket.setId(to_string(tickets.size()+1));
+        createdTicket.setFanId(fanId);
+        createdTicket.setEventId(id);
+        createdTicket.setTicketTypePrice(typePrice);
+        createdTicket.setTicketStatus(TicketStatus::Reserved);
+
+        tickets.push_back(createdTicket);
+        return createdTicket;
     }
     string viewDetailsBreifly()
     {
