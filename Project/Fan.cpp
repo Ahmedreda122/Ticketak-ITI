@@ -10,12 +10,15 @@ private:
     vector<Ticket> myTickets;
 
 public:
-    void buyTicket(Ticket myTicket);
+    void buyTicket(Ticket myTicket)
+    {
+        myTickets.push_back(myTicket);
+    }
     vector<Ticket> viewMyTickets();
-    int getId() { return id; }
     void setId(int _id)
     {
         id = _id;
     }
     int getId() const { return id; }
+
 };

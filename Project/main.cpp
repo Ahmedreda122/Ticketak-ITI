@@ -488,8 +488,6 @@ public:
                  selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getRegularTickets().price;
                  break;
         }
-        // remember to pass real fan id and current fan to ticket
-        //Ticket ticket("1",selectedEvent,1,selectedTicketTypePrice);
         purchasePage(selectedEvent,selectedTicketTypePrice);
     }
 
@@ -624,7 +622,6 @@ public:
                 }
             };
             PaymentMethod* creditCard = new CreditCard("","","","");
-            // Show the form to the user
             if (!showForm(creditCard, creditCardFields)) {
                 cout << "Credit card entry canceled!\n";
                 return false;
@@ -639,20 +636,16 @@ public:
         // after pay for ticket we will book ticket for that event
         EventManager& eventManager = EventManager::getInstance();
         Event* event = eventManager.getEvent(selectedEventId);
-        Ticket createdTicket = event->bookEvent(1 , selectedTicketTypePrice);
+        Ticket createdTicket = event->bookEvent(currentFan->getId() , selectedTicketTypePrice);
         // case booking is failed
         if(createdTicket.getId() == "0")
         {
             display(43,"Unavailable tickets please try again later.",43,0,2,50);
-            while(true)
-            {
-            }
             return false;
         }
-        while(true)
-        {
-            cout<<"booking done"<<endl;
-        }
+        // Add created ticket to current fan tickets
+        currentFan->buyTicket(createdTicket);
+        return true;
     }
 
     int viewLoginForm() {
