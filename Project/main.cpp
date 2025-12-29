@@ -451,7 +451,7 @@ public:
         return userType == UserType::Fan;
     }
 
-    vector<EventField>& createEventFormFields(); 
+    vector<EventField>& createEventFormFields();
     // {
     //     return {
     //         // -------- BASIC INFO --------
@@ -641,55 +641,40 @@ public:
     int viewEventsPage() {
         EventManager& eventManager = EventManager::getInstance();
         vector<string> eventsMenu;
-        // Add events for testing
-        // VIP, Economic, Regular ticket info for each event and date of event
-        TicketTypePriceQuantity vip1{TicketType::VIP, 500.0, 50};
-        TicketTypePriceQuantity eco1{TicketType::Economic, 200.0, 150};
-        TicketTypePriceQuantity reg1{TicketType::Regular, 100.0, 300};
-        Date date1{10,1,2026};
 
-        TicketTypePriceQuantity vip2{TicketType::VIP, 1000.0, 30};
-        TicketTypePriceQuantity eco2{TicketType::Economic, 400.0, 70};
-        TicketTypePriceQuantity reg2{TicketType::Regular, 150.0, 200};
-        Date date2{15,6,2026};
-
-        TicketTypePriceQuantity vip3{TicketType::VIP, 800.0, 40};
-        TicketTypePriceQuantity eco3{TicketType::Economic, 300.0, 120};
-        TicketTypePriceQuantity reg3{TicketType::Regular, 120.0, 250};
-        Date date3{20,12,2026};
-
-        Event event1(1, "Rock Concert", Category::Parties, date1, vip1, eco1, reg1);
-        Event event2(2, "Football Match", Category::Sports, date2, vip2, eco2, reg2);
-        Event event3(3, "City Carnival", Category::Carnivals, date3, vip3, eco3, reg3);
-
-        eventManager.addEvent(event1);
-        eventManager.addEvent(event2);
-        eventManager.addEvent(event3);
-
-        // Loop throught events
-        for(int i=0;i<eventManager.getEvents().size();i++)
+        // Loop through events
+        for(int i = 0; i < eventManager.getEvents().size(); i++)
         {
             Event tempEvent = eventManager.getEvents()[i];
             eventsMenu.push_back(tempEvent.viewDetailsBreifly());
         }
-        int selectedEvent = displayMenu(eventsMenu,"Current Events");
-        // if user click ESC
+
+        int selectedEvent = displayMenu(eventsMenu, "Current Events");
+
+        // if user clicks ESC
         if(selectedEvent == -1)
         {
             return -1;
         }
-        // when user choose event , then make him choose ticket type of event and also show event details
-        int selectedTicketType = displayMenu(vector<string>{"1-VIP\n", "2-Economic\n", "3-Regular\n", },"Choose your ticket type",
-                                            "Event details", eventManager.getEvent(selectedEvent)->viewDetails(),15);
-        // if user click ESC
+
+        // when user chooses event, then make him choose ticket type of event and also show event details
+        int selectedTicketType = displayMenu(
+            vector<string>{"1-VIP\n", "2-Economic\n", "3-Regular\n"},
+            "Choose your ticket type",
+            "Event details",
+            eventManager.getEvent(selectedEvent)->viewDetails(),
+            15
+        );
+
+        // if user clicks ESC
         if(selectedTicketType == -1)
         {
             return -1;
         }
+
         // navigate to purchase page
-        // ask from where to get Task ID
         TicketTypePrice selectedTicketTypePrice;
-        switch (selectedTicketType){
+        switch (selectedTicketType) {
             case 1:
                 selectedTicketTypePrice.type = TicketType::VIP;
                 selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getVipTickets().price;
@@ -703,12 +688,80 @@ public:
                 selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getRegularTickets().price;
                 break;
         }
-        purchasePage(selectedEvent,selectedTicketTypePrice);
+
+        purchasePage(selectedEvent, selectedTicketTypePrice);
+
+        return 0;
     }
 
     int viewAdminMenu();
 
-    int viewFanMenu();
+    int viewMyTicketsPage() {
+        if (!currentFan) return -1;
+
+        vector<string> ticketOptions = currentFan->getTicketsMenuItems();
+
+        if (ticketOptions.size() == 1 && currentFan->viewMyTickets().empty()) {
+            displayMenu(ticketOptions, "====== My Tickets ======");
+            return 0;
+        }
+
+        while (true) {
+            int choice = displayMenu(
+                ticketOptions,
+                "====== My Tickets ======",
+                "Select a ticket to view details",
+                "(Press ESC to go back)",
+                15
+            );
+
+            if (choice == -1) {
+                return 0;
+            }
+
+            string ticketDetails = currentFan->getTicketDetails(choice - 1);
+
+            vector<string> backOption = {"Press ESC to go back\n"};
+            displayMenu(backOption, "====== Ticket Details ======", "", ticketDetails, 15);
+        }
+
+        return 0;
+    }
+
+
+    int viewFanMenu()
+    {
+        if (!currentFan) return -1;
+
+        vector<string> fanOptions = {
+            "1- View Events\n",
+            "2- My Tickets\n",
+            "3- Logout\n"
+        };
+
+        while (true) {
+            int choice = displayMenu(
+                fanOptions,
+                "======= Fan Menu =======",
+                "Welcome, " + currentFan->getName(),
+                "",  // Empty string instead of getTicketsSummary()
+                10
+            );
+
+            switch (choice) {
+                case 1:
+                    viewEventsPage();
+                    break;
+                case 2:
+                    viewMyTicketsPage();
+                    break;
+                case 3:
+                case -1:
+                    logout();
+                    return -1;
+            }
+        }
+    }
 
     bool viewRegisterForm() {
         vector<Field> registerFormFields = {
@@ -931,7 +984,7 @@ public:
 
 
 void SystemManager::run() {
-    vector<string> menu = {"1- Login\n", "2- Register\n", "3- View Events\n"};
+    vector<string> menu = {"1- Login\n", "2- Register\n",};
 
     while (true) {
         int choice = displayMenu(menu, "====================Welcome to Ticketak======================");
@@ -946,7 +999,9 @@ void SystemManager::run() {
                     case -1:
                         break;
                         // Fan Logs in
-                    case 1: {
+                    case 1:
+                    {
+                        viewFanMenu();
                         break;
                     }
                         // Admin Logs in
@@ -960,17 +1015,6 @@ void SystemManager::run() {
             }
             case 2: { // Register
                 viewRegisterForm();
-                break;
-            }
-            case 3: { // Events Page
-                int result = viewEventsPage();
-                switch (result) {
-                     // Error occur so return to main menu
-                    case -1:
-                        {
-                            break;
-                        }
-                }
                 break;
             }
             case -1: {
@@ -988,6 +1032,33 @@ void SystemManager::run() {
 int main() {
     Admin admin("Karim", "admin@ticketak.com", "password", 'M', "01065243880");
     AdminManager::getInstance().addAdmin(admin);
+
+    EventManager& eventManager = EventManager::getInstance();
+
+    if (eventManager.getEvents().empty()) {
+        TicketTypePriceQuantity vip1{TicketType::VIP, 500.0, 50};
+        TicketTypePriceQuantity eco1{TicketType::Economic, 200.0, 150};
+        TicketTypePriceQuantity reg1{TicketType::Regular, 100.0, 300};
+        Date date1{10, 1, 2026};
+
+        TicketTypePriceQuantity vip2{TicketType::VIP, 1000.0, 30};
+        TicketTypePriceQuantity eco2{TicketType::Economic, 400.0, 70};
+        TicketTypePriceQuantity reg2{TicketType::Regular, 150.0, 200};
+        Date date2{15, 6, 2026};
+
+        TicketTypePriceQuantity vip3{TicketType::VIP, 800.0, 40};
+        TicketTypePriceQuantity eco3{TicketType::Economic, 300.0, 120};
+        TicketTypePriceQuantity reg3{TicketType::Regular, 120.0, 250};
+        Date date3{20, 12, 2026};
+
+        Event event1(1, "Rock Concert", Category::Parties, date1, vip1, eco1, reg1);
+        Event event2(2, "Football Match", Category::Sports, date2, vip2, eco2, reg2);
+        Event event3(3, "City Carnival", Category::Carnivals, date3, vip3, eco3, reg3);
+
+        eventManager.addEvent(event1);
+        eventManager.addEvent(event2);
+        eventManager.addEvent(event3);
+    }
 
     SystemManager app;
     app.run();
