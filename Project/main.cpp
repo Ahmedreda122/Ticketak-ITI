@@ -22,6 +22,30 @@ enum class UserType {
     NotAuth = 0
 };
 
+enum class EventFieldId {
+    Name,
+    Category,
+    //Capacity,
+
+    DateDay,
+    DateMonth,
+    DateYear,
+
+    VipPrice,
+    VipQuantity,
+
+    RegularPrice,
+    RegularQuantity,
+
+    EconomicPrice,
+    EconomicQuantity
+};
+
+
+struct EventField : Field {
+    EventFieldId id;
+};
+
 // enum class TicketType {
 //     VIP,
 //     Economic,
@@ -427,6 +451,193 @@ public:
         return userType == UserType::Fan;
     }
 
+    vector<EventField>& createEventFormFields(); 
+    // {
+    //     return {
+    //         // -------- BASIC INFO --------
+    //         {
+    //             EventFieldId::Name,
+    //             "Event Name",
+    //             30,
+    //             "A-Za-z ",
+    //             [](Event& e, const char* v) {
+    //                 e.setName(v);
+    //             }
+    //         },
+    //         {
+    //             EventFieldId::Capacity,
+    //             "Capacity",
+    //             5,
+    //             "0-9",
+    //             [](Event& e, const char* v) {
+    //                 e.setCapacity(atoi(v));
+    //             }
+    //         },
+
+    //         // -------- DATE --------
+    //         {
+    //             EventFieldId::DateDay,
+    //             "Day",
+    //             2,
+    //             "0-9",
+    //             [](Event& e, const char* v) {
+    //                 e.setDay(atoi(v));
+    //             }
+    //         },
+    //         {
+    //             EventFieldId::DateMonth,
+    //             "Month",
+    //             2,
+    //             "0-9",
+    //             [](Event& e, const char* v) {
+    //                 e.setMonth(atoi(v));
+    //             }
+    //         },
+    //         {
+    //             EventFieldId::DateYear,
+    //             "Year",
+    //             4,
+    //             "0-9",
+    //             [](Event& e, const char* v) {
+    //                 e.setYear(atoi(v));
+    //             }
+    //         },
+
+    //         // -------- VIP TICKETS --------
+    //         {
+    //             EventFieldId::VipPrice,
+    //             "VIP Ticket Price",
+    //             6,
+    //             "0-9.",
+    //             [](Event& e, const char* v) {
+    //                 e.setTicketPrice(TicketType::VIP, atof(v));
+    //             }
+    //         },
+    //         {
+    //             EventFieldId::VipQuantity,
+    //             "VIP Ticket Quantity",
+    //             4,
+    //             "0-9",
+    //             [](Event& e, const char* v) {
+    //                 e.setTicketQuantity(TicketType::VIP, atoi(v));
+    //             }
+    //         },
+
+    //         // -------- REGULAR TICKETS --------
+    //         {
+    //             EventFieldId::RegularPrice,
+    //             "Regular Ticket Price",
+    //             6,
+    //             "0-9.",
+    //             [](Event& e, const char* v) {
+    //                 e.setTicketPrice(TicketType::Regular, atof(v));
+    //             }
+    //         },
+    //         {
+    //             EventFieldId::RegularQuantity,
+    //             "Regular Ticket Quantity",
+    //             4,
+    //             "0-9",
+    //             [](Event& e, const char* v) {
+    //                 e.setTicketQuantity(TicketType::Regular, atoi(v));
+    //             }
+    //         },
+
+    //         // -------- ECONOMIC TICKETS --------
+    //         {
+    //             EventFieldId::EconomicPrice,
+    //             "Economic Ticket Price",
+    //             6,
+    //             "0-9.",
+    //             [](Event& e, const char* v) {
+    //                 e.setTicketPrice(TicketType::Economic, atof(v));
+    //             }
+    //         },
+    //         {
+    //             EventFieldId::EconomicQuantity,
+    //             "Economic Ticket Quantity",
+    //             4,
+    //             "0-9",
+    //             [](Event& e, const char* v) {
+    //                 e.setTicketQuantity(TicketType::Economic, atoi(v));
+    //             }
+    //         }
+    //     };
+    // }
+
+    void fillEditEventData(vector<EventField>& fields, const Event& event); //{
+    //     for (auto& f : fields) {
+    //         switch (f.id) {
+
+    //             case EventFieldId::Name:
+    //                 f.oldValue = event.getName();
+    //                 break;
+
+    //             case EventFieldId::Capacity:
+    //                 f.oldValue = event.getCapacityStr();
+    //                 break;
+
+    //             case EventFieldId::DateDay:
+    //                 f.oldValue = event.getDayStr();
+    //                 break;
+
+    //             case EventFieldId::DateMonth:
+    //                 f.oldValue = event.getMonthStr();
+    //                 break;
+
+    //             case EventFieldId::DateYear:
+    //                 f.oldValue = event.getYearStr();
+    //                 break;
+
+    //             case EventFieldId::VipPrice:
+    //                 f.oldValue = event.getTicketPriceStr(TicketType::VIP);
+    //                 break;
+
+    //             case EventFieldId::VipQuantity:
+    //                 f.oldValue = event.getTicketQuantityStr(TicketType::VIP);
+    //                 break;
+
+    //             case EventFieldId::RegularPrice:
+    //                 f.oldValue = event.getTicketPriceStr(TicketType::Regular);
+    //                 break;
+
+    //             case EventFieldId::RegularQuantity:
+    //                 f.oldValue = event.getTicketQuantityStr(TicketType::Regular);
+    //                 break;
+
+    //             case EventFieldId::EconomicPrice:
+    //                 f.oldValue = event.getTicketPriceStr(TicketType::Economic);
+    //                 break;
+
+    //             case EventFieldId::EconomicQuantity:
+    //                 f.oldValue = event.getTicketQuantityStr(TicketType::Economic);
+    //                 break;
+    //         }
+    //     }
+    // }
+
+
+    int viewCreateEventForm() {
+        vector<EventField>& eventFields = createEventFormFields();
+        Event event;
+        vector<Field> fields(
+            make_move_iterator(eventFields.begin()),
+            make_move_iterator(eventFields.end())
+        );
+        if (showForm(&event, fields)) EventManager::getInstance().addEvent(event);
+    }
+
+    int viewEditEventForm(int eventId) {
+        vector<EventField>& eventFields = createEventFormFields();
+        Event* event = EventManager::getInstance().getEvent(eventId);
+        fillEditEventData(eventFields, *event);
+        vector<Field> fields(
+            make_move_iterator(eventFields.begin()),
+            make_move_iterator(eventFields.end())
+        );
+        if (showForm(event, fields)) return 1;
+    }
+
     int viewEventsPage() {
         EventManager& eventManager = EventManager::getInstance();
         vector<string> eventsMenu;
@@ -469,7 +680,7 @@ public:
         }
         // when user choose event , then make him choose ticket type of event and also show event details
         int selectedTicketType = displayMenu(vector<string>{"1-VIP\n", "2-Economic\n", "3-Regular\n", },"Choose your ticket type",
-                                             "Event details", eventManager.getEvent(selectedEvent)->viewDetails(),15);
+                                            "Event details", eventManager.getEvent(selectedEvent)->viewDetails(),15);
         // if user click ESC
         if(selectedTicketType == -1)
         {
@@ -480,17 +691,17 @@ public:
         TicketTypePrice selectedTicketTypePrice;
         switch (selectedTicketType){
             case 1:
-                 selectedTicketTypePrice.type = TicketType::VIP;
-                 selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getVipTickets().price;
-                 break;
+                selectedTicketTypePrice.type = TicketType::VIP;
+                selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getVipTickets().price;
+                break;
             case 2:
-                 selectedTicketTypePrice.type = TicketType::Economic;
-                 selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getEconomicTickets().price;
-                 break;
+                selectedTicketTypePrice.type = TicketType::Economic;
+                selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getEconomicTickets().price;
+                break;
             case 3:
-                 selectedTicketTypePrice.type = TicketType::Regular;
-                 selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getRegularTickets().price;
-                 break;
+                selectedTicketTypePrice.type = TicketType::Regular;
+                selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getRegularTickets().price;
+                break;
         }
         purchasePage(selectedEvent,selectedTicketTypePrice);
     }
@@ -590,7 +801,7 @@ public:
     bool purchasePage(int selectedEventId , TicketTypePrice selectedTicketTypePrice)
     {
         int selectedPaymentMethod = displayMenu(vector<string>{"1-Fawry Pay\n", "2-Credit Card\n"},"Choose your payment method",
-                                             "Ticket price ", "  " + to_string(selectedTicketTypePrice.price),7);
+                                            "Ticket price ", "  " + to_string(selectedTicketTypePrice.price),7);
         PaymentService paymentService;
         system("cls");
         // handle ESC case
@@ -753,14 +964,14 @@ void SystemManager::run() {
             }
             case 3: { // Events Page
                 int result = viewEventsPage();
-                 switch (result) {
+                switch (result) {
                      // Error occur so return to main menu
-                     case -1:
-                         {
-                             break;
-                         }
-                 }
-                 break;
+                    case -1:
+                        {
+                            break;
+                        }
+                }
+                break;
             }
             case -1: {
                 system("cls");

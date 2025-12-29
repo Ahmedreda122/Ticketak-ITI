@@ -20,6 +20,8 @@ struct Field {
     // we will cast it to specific type when we use it inside
     // function<> allows you to store a function in a variable like PHP
     function<void(void*, const char*)> setter;
+
+    char* oldValue = nullptr;
 };
 
 void gotoxy(int x,int y);
@@ -27,7 +29,7 @@ void textattr(int i);
 bool showForm(void* object, vector<Field>& fields, string errorMessage="", int errorCount = 0);
 void display(int nChar, char* arr, int cursor, int xPos, int yPos, int len);
 bool isCharAllowed(char ch, const string& regexStr);
-char** multiLineEditor(int* xPos, int* yPos, int* len, string* regexStrs, int N, int errorCount = 0);
+char** multiLineEditor(int* xPos, int* yPos, int* len, char** str, string* regexStrs, int N, int errorCount);
 int displayMenu(const vector<string>& menu, const string& MenuTitle = "=======Menu======");
 int displayMenu(const vector<string>& menu, const string& MenuTitle, const string& MenuDescription, int YPositionOfESC);
 
@@ -41,6 +43,7 @@ bool showForm(void* object, vector<Field>& fields, string errorMessage, int erro
     int* xPos = new int[n];
     int* yPos = new int[n];
     int* len  = new int[n];
+    char** oldValues = new char*[n];
     string* regexStrs = new string[n];
 
     system("cls");
@@ -54,7 +57,11 @@ bool showForm(void* object, vector<Field>& fields, string errorMessage, int erro
         xPos[i] = inputX;
         yPos[i] = y;
         len[i]  = fields[i].len;
+        oldValues[i] = new char[len[i] + 1];
         regexStrs[i] = fields[i].regexStr;
+        // Writes len[i] (+1 for null-terminator char) characters from fields[i].oldvalue if exist
+        // to oldValues[i] using "%s" format (which means as string)
+        snprintf(oldValues[i], len[i]+1, "%s", fields[i].oldValue ? fields[i].oldValue : "");
     }
 
     if (!errorMessage.empty()) {
@@ -63,7 +70,7 @@ bool showForm(void* object, vector<Field>& fields, string errorMessage, int erro
         gotoxy(xPos[0], yPos[0]);
     }
 
-    char** values = multiLineEditor(xPos, yPos, len, regexStrs, n, errorCount);
+    char** values = multiLineEditor(xPos, yPos, len, oldValues, regexStrs, n,errorCount);
     if (values == nullptr) return false;
 
     for (int i = 0; i < n; ++i) {
@@ -85,20 +92,22 @@ void textattr(int i)
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), i);
 }
 
-char** multiLineEditor(int* xPos, int* yPos, int* len, string* regexStrs, int N, int errorCount){
+char** multiLineEditor(int* xPos, int* yPos, int* len, char** str, string* regexStrs, int N, int errorCount){
     int index = 0;
 
-    char** str = new char*[N];
+    //char** str = new char*[N];
     char** current = new char*[N];
     char** first = new char*[N];
     char** last = new char*[N];
     int* cursor = new int[N]{};
 
     for(int i = 0; i < N; ++i){
-        str[i] = new char[len[i] + 1];
-        current[i] = first[i] = last[i] = str[i];
-        display(0, nullptr, cursor[i], xPos[i], yPos[i], len[i]);
+        //str[i] = new char[len[i] + 1];
+        current[i] = first[i] = str[i];
+        last[i] = str[i] + (strlen(str[i]));
+        display((int)strlen(str[i]), str[i], cursor[i], xPos[i], yPos[i], len[i]);
     }
+    
     gotoxy(0, yPos[N-1] + errorCount + 3);
     cout << "Press ESC to back.";
     gotoxy(xPos[0], yPos[0]);

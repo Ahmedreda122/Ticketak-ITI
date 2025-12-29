@@ -13,10 +13,10 @@ enum class Category {
     Carnivals
 };
 struct TicketTypePriceQuantity {
-     TicketType type;
-     double price;
-     int quantity;
- };
+    TicketType type;
+    double price;
+    int quantity;
+};
 struct Date {
     int day, month, year;
 };
@@ -36,8 +36,10 @@ private:
     Date date;
 
 public:
+    Event() = default;
+
     Event(int id,string name,Category category,Date date,
-          TicketTypePriceQuantity vipTickets,TicketTypePriceQuantity economicTickets,TicketTypePriceQuantity regularTickets)
+        TicketTypePriceQuantity vipTickets,TicketTypePriceQuantity economicTickets,TicketTypePriceQuantity regularTickets)
     {
         this->id = id;
         this->name = name;
@@ -49,6 +51,7 @@ public:
         this->capacity = vipTickets.quantity + economicTickets.quantity + regularTickets.quantity;
         availableTickets = capacity;
     }
+
     const TicketTypePriceQuantity& getVipTickets() const {
         return vipTickets;
     }
