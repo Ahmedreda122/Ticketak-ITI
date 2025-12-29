@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cctype>
 #include <regex>
+#include <string>
 
 #include "GenericMultiEditorForm.cpp"
 
@@ -260,16 +261,16 @@ struct LoginDTO {
 class ValidationService {
 public:
     static bool isValidEmail(const string &email) {
-        // A Form of E-mail following IETF standards 
+        // A Form of E-mail following IETF standards
         regex stdEmail("[^@.]+(.[^@.]+)?(@[A-Za-z0-9]+)(\\-[A-Za-z0-9]+)?(.[0-9]*[A-Za-z]+[0-9]*(\\-[A-Za-z0-9]+)?)+");
-        // If the user's email following the regex form return true, false otherwise 
+        // If the user's email following the regex form return true, false otherwise
         return regex_match(email, stdEmail);
     }
 
     static bool isValidNum(const string &phoneNum) {
         // Standard form of Egyptian phone number
         regex stdPhoneNum("(010|011|012|015)[0-9]{8}");
-        // If the user's phone number following the regex form return true, false otherwise 
+        // If the user's phone number following the regex form return true, false otherwise
         return regex_match(phoneNum, stdPhoneNum);
     }
 
@@ -283,7 +284,7 @@ public:
 
         // // A Standard form for username
         // regex stdUserName("([0-9_]*[a-zA-Z]+[_0-9]*[a-zA-Z]+[0-9_]*)");
-        // // If the user's username following the regex form return true, false otherwise 
+        // // If the user's username following the regex form return true, false otherwise
         // return regex_match(userName, stdUserName);
     }
 
@@ -349,6 +350,11 @@ private:
 public:
     CreditCard(string n, string num, string c, string exp)
             : name(n), cardNumber(num), cvv(c), expiryDate(exp) {}
+
+    void setName(const string& n) { name = n; }
+    void setCardNumber(const string& num) { cardNumber = num; }
+    void setCvv(const string& c) { cvv = c; }
+    void setExpiryDate(const string& exp) { expiryDate = exp; }
 
     bool pay(double amount) override {
         cout << "Paying " << amount << " via CreditCard " << cardNumber << ".\n";
@@ -421,7 +427,73 @@ public:
         return userType == UserType::Fan;
     }
 
-    void viewEventsPage();
+    int viewEventsPage() {
+        EventManager& eventManager = EventManager::getInstance();
+        vector<string> eventsMenu;
+        // Add events for testing
+        // VIP, Economic, Regular ticket info for each event and date of event
+        TicketTypePriceQuantity vip1{TicketType::VIP, 500.0, 50};
+        TicketTypePriceQuantity eco1{TicketType::Economic, 200.0, 150};
+        TicketTypePriceQuantity reg1{TicketType::Regular, 100.0, 300};
+        Date date1{10,1,2026};
+
+        TicketTypePriceQuantity vip2{TicketType::VIP, 1000.0, 30};
+        TicketTypePriceQuantity eco2{TicketType::Economic, 400.0, 70};
+        TicketTypePriceQuantity reg2{TicketType::Regular, 150.0, 200};
+        Date date2{15,6,2026};
+
+        TicketTypePriceQuantity vip3{TicketType::VIP, 800.0, 40};
+        TicketTypePriceQuantity eco3{TicketType::Economic, 300.0, 120};
+        TicketTypePriceQuantity reg3{TicketType::Regular, 120.0, 250};
+        Date date3{20,12,2026};
+
+        Event event1(1, "Rock Concert", Category::Parties, date1, vip1, eco1, reg1);
+        Event event2(2, "Football Match", Category::Sports, date2, vip2, eco2, reg2);
+        Event event3(3, "City Carnival", Category::Carnivals, date3, vip3, eco3, reg3);
+
+        eventManager.addEvent(event1);
+        eventManager.addEvent(event2);
+        eventManager.addEvent(event3);
+
+        // Loop throught events
+        for(int i=0;i<eventManager.getEvents().size();i++)
+        {
+            Event tempEvent = eventManager.getEvents()[i];
+            eventsMenu.push_back(tempEvent.viewDetailsBreifly());
+        }
+        int selectedEvent = displayMenu(eventsMenu,"Current Events");
+        // if user click ESC
+        if(selectedEvent == -1)
+        {
+            return -1;
+        }
+        // when user choose event , then make him choose ticket type of event and also show event details
+        int selectedTicketType = displayMenu(vector<string>{"1-VIP\n", "2-Economic\n", "3-Regular\n", },"Choose your ticket type",
+                                             "Event details", eventManager.getEvent(selectedEvent)->viewDetails(),15);
+        // if user click ESC
+        if(selectedTicketType == -1)
+        {
+            return -1;
+        }
+        // navigate to purchase page
+        // ask from where to get Task ID
+        TicketTypePrice selectedTicketTypePrice;
+        switch (selectedTicketType){
+            case 1:
+                 selectedTicketTypePrice.type = TicketType::VIP;
+                 selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getVipTickets().price;
+                 break;
+            case 2:
+                 selectedTicketTypePrice.type = TicketType::Economic;
+                 selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getEconomicTickets().price;
+                 break;
+            case 3:
+                 selectedTicketTypePrice.type = TicketType::Regular;
+                 selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getRegularTickets().price;
+                 break;
+        }
+        purchasePage(selectedEvent,selectedTicketTypePrice);
+    }
 
     int viewAdminMenu();
 
@@ -469,7 +541,7 @@ public:
             if (!showForm(&fan, registerFormFields, errorMsg, errorCount))
                 cancelForm = true;
 
-            // reset the errors    
+            // reset the errors
             errorCount = 0;
             errorMsg = "";
 
@@ -515,7 +587,78 @@ public:
         return allEvents;
     }
 
-    bool purchasePage(Ticket myTicket);
+    bool purchasePage(int selectedEventId , TicketTypePrice selectedTicketTypePrice)
+    {
+        int selectedPaymentMethod = displayMenu(vector<string>{"1-Fawry Pay\n", "2-Credit Card\n"},"Choose your payment method",
+                                             "Ticket price ", "  " + to_string(selectedTicketTypePrice.price),7);
+        PaymentService paymentService;
+        system("cls");
+        // handle ESC case
+        if(selectedPaymentMethod == -1)
+        {
+            return false;
+        }
+        // User select to pay with Fawry
+        else if(selectedPaymentMethod == 1)
+        {
+            PaymentMethod* fawry = new FawryPay();
+            paymentService.setPaymentMethod(fawry);
+        }
+        // User select to pay with Credit Card
+        else if(selectedPaymentMethod == 2)
+        {
+            vector<Field> creditCardFields = {
+                {
+                    "Cardholder Name:", 30, "A-Za-z ",
+                    [](void* cc, const char* input) {
+                        ((CreditCard*)cc)->setName(input);
+                    }
+                },
+                {
+                    "Card Number:", 16, "0-9",
+                    [](void* cc, const char* input) {
+                        ((CreditCard*)cc)->setCardNumber(input);
+                    }
+                },
+                {
+                    "CVV:", 4, "0-9",
+                    [](void* cc, const char* input) {
+                        ((CreditCard*)cc)->setCvv(input);
+                    }
+                },
+                {
+                    "Exp Date(MM-YYYY):", 7, "0-9-",
+                    [](void* cc, const char* input) {
+                        ((CreditCard*)cc)->setExpiryDate(input);
+                    }
+                }
+            };
+            PaymentMethod* creditCard = new CreditCard("","","","");
+            if (!showForm(creditCard, creditCardFields)) {
+                cout << "Credit card entry canceled!\n";
+                return false;
+            }
+            system("cls");
+            paymentService.setPaymentMethod(creditCard);
+        }
+
+        // pay for ticket
+        paymentService.processPayment(selectedTicketTypePrice.price);
+
+        // after pay for ticket we will book ticket for that event
+        EventManager& eventManager = EventManager::getInstance();
+        Event* event = eventManager.getEvent(selectedEventId);
+        Ticket createdTicket = event->bookEvent(currentFan->getId() , selectedTicketTypePrice);
+        // case booking is failed
+        if(createdTicket.getId() == "0")
+        {
+            display(43,"Unavailable tickets please try again later.",43,0,2,50);
+            return false;
+        }
+        // Add created ticket to current fan tickets
+        currentFan->buyTicket(createdTicket);
+        return true;
+    }
 
     int viewLoginForm() {
         vector<Field> loginFormFields = {
@@ -577,7 +720,7 @@ public:
 
 
 void SystemManager::run() {
-    vector<string> menu = {"1- Login\n", "2- Register\n"};
+    vector<string> menu = {"1- Login\n", "2- Register\n", "3- View Events\n"};
 
     while (true) {
         int choice = displayMenu(menu, "====================Welcome to Ticketak======================");
@@ -607,6 +750,17 @@ void SystemManager::run() {
             case 2: { // Register
                 viewRegisterForm();
                 break;
+            }
+            case 3: { // Events Page
+                int result = viewEventsPage();
+                 switch (result) {
+                     // Error occur so return to main menu
+                     case -1:
+                         {
+                             break;
+                         }
+                 }
+                 break;
             }
             case -1: {
                 system("cls");
