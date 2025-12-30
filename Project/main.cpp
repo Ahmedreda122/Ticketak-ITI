@@ -103,21 +103,21 @@ public:
         }
         return nullptr;
     }
-    
+
     // Only the Fan can register, Admin Added by developer
     static bool _register(Fan &fan) {
         FanManager &fanManager = FanManager::getInstance();
-        
+
         fan.setId(fanManager.getSize());
         fanManager.addFan(fan);
         return true;
     }
 
-    static bool isExistingEmail(const string& email) {
+    static bool isExistingEmail(const string &email) {
         FanManager &fanManager = FanManager::getInstance();
         AdminManager &adminManager = AdminManager::getInstance();
         return fanManager.getFanByEmail(email) != nullptr || adminManager.getAdminByEmail(email) != nullptr;
-    }    
+    }
 };
 
 // ================= PAYMENT STRATEGY PATTERN =================
@@ -149,10 +149,13 @@ public:
     CreditCard(string n, string num, string c, string exp)
             : name(n), cardNumber(num), cvv(c), expiryDate(exp) {}
 
-    void setName(const string& n) { name = n; }
-    void setCardNumber(const string& num) { cardNumber = num; }
-    void setCvv(const string& c) { cvv = c; }
-    void setExpiryDate(const string& exp) { expiryDate = exp; }
+    void setName(const string &n) { name = n; }
+
+    void setCardNumber(const string &num) { cardNumber = num; }
+
+    void setCvv(const string &c) { cvv = c; }
+
+    void setExpiryDate(const string &exp) { expiryDate = exp; }
 
     bool pay(double amount) override {
         cout << "Paying " << amount << " via CreditCard " << cardNumber << ".\n";
@@ -219,133 +222,133 @@ public:
         return userType == UserType::Fan;
     }
 
-    vector<EventField>& createEventFormFields() {
+    vector<EventField> &createEventFormFields() {
         static vector<EventField> fields = {
-            {
                 {
-                    "Event Name:",
-                    30,
-                    "A-Za-z ",
-                    [](void* obj, const char* v) {
-                        static_cast<Event*>(obj)->setName(v);
-                    }
+                        {
+                                "Event Name:",
+                                30,
+                                "A-Za-z ",
+                                [](void *obj, const char *v) {
+                                    static_cast<Event *>(obj)->setName(v);
+                                }
+                        },
+                        EventFieldId::Name
                 },
-                EventFieldId::Name
-            },
 
-            // -------- DATE --------
-            {
+                // -------- DATE --------
                 {
-                    "Day:",
-                    2,
-                    "0-9",
-                    [](void* obj, const char* v) {
-                        static_cast<Event*>(obj)->setDay(atoi(v));
-                    }
+                        {
+                                "Day:",
+                                2,
+                                "0-9",
+                                [](void *obj, const char *v) {
+                                    static_cast<Event *>(obj)->setDay(atoi(v));
+                                }
+                        },
+                        EventFieldId::DateDay
                 },
-                EventFieldId::DateDay
-            },
-            {
                 {
-                    "Month:",
-                    2,
-                    "0-9",
-                    [](void* obj, const char* v) {
-                        static_cast<Event*>(obj)->setMonth(atoi(v));
-                    }
+                        {
+                                "Month:",
+                                2,
+                                "0-9",
+                                [](void *obj, const char *v) {
+                                    static_cast<Event *>(obj)->setMonth(atoi(v));
+                                }
+                        },
+                        EventFieldId::DateMonth
                 },
-                EventFieldId::DateMonth
-            },
-            {
                 {
-                    "Year:",
-                    4,
-                    "0-9",
-                    [](void* obj, const char* v) {
-                        static_cast<Event*>(obj)->setYear(atoi(v));
-                    }
+                        {
+                                "Year:",
+                                4,
+                                "0-9",
+                                [](void *obj, const char *v) {
+                                    static_cast<Event *>(obj)->setYear(atoi(v));
+                                }
+                        },
+                        EventFieldId::DateYear
                 },
-                EventFieldId::DateYear
-            },
 
-            // -------- VIP TICKETS --------
-            {
+                // -------- VIP TICKETS --------
                 {
-                    "VIP Ticket Price:",
-                    7,
-                    "0-9.",
-                    [](void* obj, const char* v) {
-                        static_cast<Event*>(obj)->setTicketPrice(TicketType::VIP, atof(v));
-                    }
+                        {
+                                "VIP Ticket Price:",
+                                7,
+                                "0-9.",
+                                [](void *obj, const char *v) {
+                                    static_cast<Event *>(obj)->setTicketPrice(TicketType::VIP, atof(v));
+                                }
+                        },
+                        EventFieldId::VipPrice
                 },
-                EventFieldId::VipPrice
-            },
-            {
                 {
-                    "VIP Ticket Quantity:",
-                    6,
-                    "0-9",
-                    [](void* obj, const char* v) {
-                        static_cast<Event*>(obj)->setTicketQuantity(TicketType::VIP, atoi(v));
-                    }
+                        {
+                                "VIP Ticket Quantity:",
+                                6,
+                                "0-9",
+                                [](void *obj, const char *v) {
+                                    static_cast<Event *>(obj)->setTicketQuantity(TicketType::VIP, atoi(v));
+                                }
+                        },
+                        EventFieldId::VipQuantity
                 },
-                EventFieldId::VipQuantity
-            },
 
-            // -------- REGULAR TICKETS --------
-            {
+                // -------- REGULAR TICKETS --------
                 {
-                    "Regular Ticket Price:",
-                    7,
-                    "0-9.",
-                    [](void* obj, const char* v) {
-                        static_cast<Event*>(obj)->setTicketPrice(TicketType::Regular, atof(v));
-                    }
+                        {
+                                "Regular Ticket Price:",
+                                7,
+                                "0-9.",
+                                [](void *obj, const char *v) {
+                                    static_cast<Event *>(obj)->setTicketPrice(TicketType::Regular, atof(v));
+                                }
+                        },
+                        EventFieldId::RegularPrice
                 },
-                EventFieldId::RegularPrice
-            },
-            {
                 {
-                    "Regular Ticket Quantity:",
-                    6,
-                    "0-9",
-                    [](void* obj, const char* v) {
-                        static_cast<Event*>(obj)->setTicketQuantity(TicketType::Regular, atoi(v));
-                    }
+                        {
+                                "Regular Ticket Quantity:",
+                                6,
+                                "0-9",
+                                [](void *obj, const char *v) {
+                                    static_cast<Event *>(obj)->setTicketQuantity(TicketType::Regular, atoi(v));
+                                }
+                        },
+                        EventFieldId::RegularQuantity
                 },
-                EventFieldId::RegularQuantity
-            },
 
-            // -------- ECONOMIC TICKETS --------
-            {
+                // -------- ECONOMIC TICKETS --------
                 {
-                    "Economic Ticket Price:",
-                    7,
-                    "0-9.",
-                    [](void* obj, const char* v) {
-                        static_cast<Event*>(obj)->setTicketPrice(TicketType::Economic, atof(v));
-                    }
+                        {
+                                "Economic Ticket Price:",
+                                7,
+                                "0-9.",
+                                [](void *obj, const char *v) {
+                                    static_cast<Event *>(obj)->setTicketPrice(TicketType::Economic, atof(v));
+                                }
+                        },
+                        EventFieldId::EconomicPrice
                 },
-                EventFieldId::EconomicPrice
-            },
-            {
                 {
-                    "Economic Ticket Quantity:",
-                    6,
-                    "0-9",
-                    [](void* obj, const char* v) {
-                        static_cast<Event*>(obj)->setTicketQuantity(TicketType::Economic, atoi(v));
-                    }
-                },
-                EventFieldId::EconomicQuantity
-            }
+                        {
+                                "Economic Ticket Quantity:",
+                                6,
+                                "0-9",
+                                [](void *obj, const char *v) {
+                                    static_cast<Event *>(obj)->setTicketQuantity(TicketType::Economic, atoi(v));
+                                }
+                        },
+                        EventFieldId::EconomicQuantity
+                }
         };
 
         return fields;
     }
 
-    void fillEditEventData(vector<EventField>& fields, const Event& event) {
-        for (auto& f : fields) {
+    void fillEditEventData(vector<EventField> &fields, const Event &event) {
+        for (auto &f: fields) {
             switch (f.id) {
                 case EventFieldId::Name:
                     f.oldValue = event.getName();
@@ -390,55 +393,79 @@ public:
     }
 
     bool viewCreateEventForm() {
-        vector<EventField>& eventFields = createEventFormFields();
-        Event event;
-        vector<Field> fields(
-            eventFields.begin(),
-            eventFields.end()
-        );
-        if (showForm(&event, fields, "", 0, 30)) {
-            EventManager::getInstance().addEvent(event);
-            return true;
+        vector<EventField> &eventFields = createEventFormFields();
+        vector<Field> fields(eventFields.begin(), eventFields.end());
+        string error;
+        int errC = 0;
+        while (true) {
+            Event event;
+
+            if (!showForm(&event, fields, error, errC, 30))
+                return false;
+
+            errC = event.isValid(error);
+
+            if (!errC) {
+                EventManager::getInstance().addEvent(event);
+                system("cls");
+                cout << "Event is created successfully";
+                Sleep(2000);
+                return true;
+            }
         }
-        return false;
     }
 
-    Event* getEventIdFromUser(){
+    Event *getEventIdFromUser() {
         bool isValidId = true;
         string errorMsg = "";
         int eventId = 0;
 
         vector<Field> EventIdField = {
-            {
-                "Event ID:", 10, "0-9",
-                [](void* obj, const char* v) {
-                    *static_cast<int*>(obj) = atoi(v);
+                {
+                        "Event ID:", 10, "0-9",
+                        [](void *obj, const char *v) {
+                            *static_cast<int *>(obj) = atoi(v);
+                        }
                 }
-            }
         };
 
         do {
             if (!showForm(&eventId, EventIdField, errorMsg, 0 , 15)) return nullptr;
             errorMsg = "";
-            Event* e = EventManager::getInstance().getEvent(eventId);
+            Event *e = EventManager::getInstance().getEvent(eventId);
             if (e != nullptr) return e;
             else {
                 isValidId = false;
                 errorMsg = "Event ID is not found";
             }
-        } while(!isValidId);
+        } while (!isValidId);
         return nullptr;
     }
 
-    bool viewEditEventForm(Event* event) {
-        vector<EventField>& eventFields = createEventFormFields();
-        fillEditEventData(eventFields, *event);
-        vector<Field> fields(
-            eventFields.begin(),
-            eventFields.end()
-        );
-        if (showForm(event, fields, "", 0, 30)) return true;
-        return false;
+    bool viewEditEventForm(Event *event) {
+        vector<EventField> &eventFields = createEventFormFields();
+        string error;
+        int errC = 0;
+        while (true) {
+            fillEditEventData(eventFields, *event);
+
+            vector<Field> fields(
+                    eventFields.begin(),
+                    eventFields.end()
+            );
+
+            if (!showForm(event, fields, error, errC, 30))
+                return false;
+
+            errC = event->isValid(error);
+
+            if (!errC) {
+                system("cls");
+                cout << "Event is edited successfully";
+                Sleep(2000);
+                return true;
+            }
+        }
     }
 
     void getEventsMenu(vector<string>& eventsMenu, const vector<Event>& events){
@@ -447,8 +474,15 @@ public:
         }
     }
 
+    void getEventsMenu(vector<string>& eventsMenu, const vector<Event>& events){
+        for (const Event& e : events){
+            eventsMenu.push_back(e.viewDetailsBreifly());
+        }
+    }
+
+
     int viewEventsPage() {
-        EventManager& eventManager = EventManager::getInstance();
+        EventManager &eventManager = EventManager::getInstance();
         vector<string> eventsMenu;
         const vector<Event>& events = eventManager.getEvents();
         int selectedTicketType = 0;
@@ -502,41 +536,41 @@ public:
         return 0;
     }
 
-    int viewAdminMenu(){
+    int viewAdminMenu() {
         if (!isAdmin()) return -1;
 
         vector<string> adminOptions = {
-            "1- Create Event\n",
-            "2- Edit Event\n",
-            "3- Delete Event\n",
-            "4- Log out\n"
+                "1- Create Event\n",
+                "2- Edit Event\n",
+                "3- Delete Event\n",
+                "4- Log out\n"
         };
 
         while (true) {
             int choice = displayMenu(
-                adminOptions,
-                "======= Admin Menu =======",
-                "Welcome, " + currentAdmin->getName(),
-                "",  
-                6
+                    adminOptions,
+                    "======= Admin Menu =======",
+                    "Welcome, " + currentAdmin->getName(),
+                    "",
+                    6
             );
 
             switch (choice) {
-            case 1:
-                viewCreateEventForm();
-                break;
-            case 2:{
-                Event* e = getEventIdFromUser();
-                if (e == nullptr) break;
-                viewEditEventForm(e);
-                break;
-            }
-            case 3:
-                break;    
-            case 4:
-                logout();
-            case -1:
-                return -1;
+                case 1:
+                    viewCreateEventForm();
+                    break;
+                case 2: {
+                    Event *e = getEventIdFromUser();
+                    if (e == nullptr) break;
+                    viewEditEventForm(e);
+                    break;
+                }
+                case 3:
+                    break;
+                case 4:
+                    logout();
+                case -1:
+                    return -1;
             }
         }
     }
@@ -553,11 +587,11 @@ public:
 
         while (true) {
             int choice = displayMenu(
-                ticketOptions,
-                "====== My Tickets ======",
-                "Select a ticket to view details",
-                "",
-                5
+                    ticketOptions,
+                    "====== My Tickets ======",
+                    "Select a ticket to view details",
+                    "",
+                    5
             );
 
             if (choice == -1) {
@@ -657,11 +691,11 @@ public:
 
         while (true) {
             int choice = displayMenu(
-                fanOptions,
-                "======= Fan Menu =======",
-                "Welcome, " + currentFan->getName(),
-                "", 
-                6
+                    fanOptions,
+                    "======= Fan Menu =======",
+                    "Welcome, " + currentFan->getName(),
+                    "",
+                    6
             );
 
             switch (choice) {
@@ -785,12 +819,11 @@ public:
         return matchedEvents;
     }
 
-    bool purchasePage(int selectedEventId , TicketTypePrice selectedTicketTypePrice)
-    {
+    bool purchasePage(int selectedEventId, TicketTypePrice selectedTicketTypePrice) {
         int selectedPaymentMethod = displayMenu(
-            vector<string>{"1-Fawry Pay\n", "2-Credit Card\n"},
-            "Choose your payment method",
-            "Ticket price ", "  " + to_string(selectedTicketTypePrice.price), 7
+                vector<string>{"1-Fawry Pay\n", "2-Credit Card\n"},
+                "Choose your payment method",
+                "Ticket price ", "  " + to_string(selectedTicketTypePrice.price), 7
         );
 
         PaymentService paymentService;
@@ -800,42 +833,40 @@ public:
         {
             return false;
         }
-        // User select to pay with Fawry
-        else if(selectedPaymentMethod == 1)
-        {
-            PaymentMethod* fawry = new FawryPay();
+            // User select to pay with Fawry
+        else if (selectedPaymentMethod == 1) {
+            PaymentMethod *fawry = new FawryPay();
             paymentService.setPaymentMethod(fawry);
         }
-        // User select to pay with Credit Card
-        else if(selectedPaymentMethod == 2)
-        {
+            // User select to pay with Credit Card
+        else if (selectedPaymentMethod == 2) {
             vector<Field> creditCardFields = {
-                {
-                    "Cardholder Name:", 30, "A-Za-z ",
-                    [](void* cc, const char* input) {
-                        ((CreditCard*)cc)->setName(input);
+                    {
+                            "Cardholder Name:",   30, "A-Za-z ",
+                            [](void *cc, const char *input) {
+                                ((CreditCard *) cc)->setName(input);
+                            }
+                    },
+                    {
+                            "Card Number:",       16, "0-9",
+                            [](void *cc, const char *input) {
+                                ((CreditCard *) cc)->setCardNumber(input);
+                            }
+                    },
+                    {
+                            "CVV:",               4,  "0-9",
+                            [](void *cc, const char *input) {
+                                ((CreditCard *) cc)->setCvv(input);
+                            }
+                    },
+                    {
+                            "Exp Date(MM-YYYY):", 7,  "0-9-",
+                            [](void *cc, const char *input) {
+                                ((CreditCard *) cc)->setExpiryDate(input);
+                            }
                     }
-                },
-                {
-                    "Card Number:", 16, "0-9",
-                    [](void* cc, const char* input) {
-                        ((CreditCard*)cc)->setCardNumber(input);
-                    }
-                },
-                {
-                    "CVV:", 4, "0-9",
-                    [](void* cc, const char* input) {
-                        ((CreditCard*)cc)->setCvv(input);
-                    }
-                },
-                {
-                    "Exp Date(MM-YYYY):", 7, "0-9-",
-                    [](void* cc, const char* input) {
-                        ((CreditCard*)cc)->setExpiryDate(input);
-                    }
-                }
             };
-            PaymentMethod* creditCard = new CreditCard("","","","");
+            PaymentMethod *creditCard = new CreditCard("", "", "", "");
             if (!showForm(creditCard, creditCardFields)) {
                 cout << "Credit card entry canceled!\n";
                 return false;
@@ -848,13 +879,12 @@ public:
         paymentService.processPayment(selectedTicketTypePrice.price);
 
         // after pay for ticket we will book ticket for that event
-        EventManager& eventManager = EventManager::getInstance();
-        Event* event = eventManager.getEvent(selectedEventId);
-        Ticket createdTicket = event->bookEvent(currentFan->getId() , selectedTicketTypePrice);
+        EventManager &eventManager = EventManager::getInstance();
+        Event *event = eventManager.getEvent(selectedEventId);
+        Ticket createdTicket = event->bookEvent(currentFan->getId(), selectedTicketTypePrice);
         // case booking is failed
-        if(createdTicket.getId() == "0")
-        {
-            display(43,"Unavailable tickets please try again later.",43,0,2,50);
+        if (createdTicket.getId() == "0") {
+            display(43, "Unavailable tickets please try again later.", 43, 0, 2, 50);
             return false;
         }
         // Add created ticket to current fan tickets
@@ -928,37 +958,37 @@ void SystemManager::run() {
         int choice = displayMenu(menu, "====================Welcome to Ticketak======================");
 
         switch (choice) {
-        // Login
-        case 1: {
+            // Login
+            case 1: {
 
-            int result = viewLoginForm();
+                int result = viewLoginForm();
 
-            switch (result) {
-                // Returning to main menu
-            case -1:
-                break;
-            // Fan Logs in
-            case 1:{
-                viewFanMenu();
+                switch (result) {
+                    // Returning to main menu
+                    case -1:
+                        break;
+                        // Fan Logs in
+                    case 1: {
+                        viewFanMenu();
+                        break;
+                    }
+                        // Admin Logs in
+                    case 2: {
+                        viewAdminMenu();
+                        break;
+                    }
+                }
                 break;
             }
-            // Admin Logs in
-            case 2: {
-                viewAdminMenu();
+            case 2: { // Register
+                viewRegisterForm();
                 break;
             }
+            case -1: {
+                system("cls");
+                cout << "Thanks for using Ticketak :)\n";
+                return;
             }
-            break;
-        }
-        case 2: { // Register
-            viewRegisterForm();
-            break;
-        }
-        case -1: {
-            system("cls");
-            cout << "Thanks for using Ticketak :)\n";
-            return;
-        }
         }
     }
 }

@@ -108,7 +108,7 @@ char** multiLineEditor(int* xPos, int* yPos, int* len, char** str, string* regex
         last[i] = str[i] + (strlen(str[i]));
         display((int)strlen(str[i]), str[i], cursor[i], xPos[i], yPos[i], len[i]);
     }
-    
+
     gotoxy(0, yPos[N-1] + errorCount + 3);
     cout << "Press ESC to back.";
     gotoxy(xPos[0], yPos[0]);
@@ -325,7 +325,7 @@ int displayMenu(const vector<string>& menu, const string& MenuTitle,const string
             }
             cout << menu[i];
         }
-        
+
         textattr(0x007); // reset colors
 
         if (MenuDescriptionTitle != ""){
@@ -333,7 +333,7 @@ int displayMenu(const vector<string>& menu, const string& MenuTitle,const string
             if (!MenuDescription.empty())
                 cout << "\n" << MenuDescription << endl;
         }
-        
+
         char ch = getch();
         switch(ch){
         case -32:{
