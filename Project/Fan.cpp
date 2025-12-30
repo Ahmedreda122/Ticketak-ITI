@@ -13,6 +13,11 @@ private:
     vector<Ticket> myTickets;
 
 public:
+    Fan() = default;
+
+    Fan(string name, string email, string password, char gender, string phone)
+        : User(name,email,password,gender,phone), id(0) {}
+
     void buyTicket(Ticket myTicket)
     {
         myTickets.push_back(myTicket);

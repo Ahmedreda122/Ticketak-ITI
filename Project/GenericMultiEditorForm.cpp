@@ -26,7 +26,7 @@ struct Field {
 
 void gotoxy(int x,int y);
 void textattr(int i);
-bool showForm(void* object, vector<Field>& fields, string errorMessage = "", int errorCount = 0, const int inputX = 21);
+bool showForm(void* object, vector<Field>& fields, string errorMessage = "", int errorCount = 0, const int inputX = 18);
 void display(int nChar, char* arr, int cursor, int xPos, int yPos, int len);
 bool isCharAllowed(char ch, const string& regexStr);
 char** multiLineEditor(int* xPos, int* yPos, int* len, char** str, string* regexStrs, int N, int errorCount);
@@ -315,6 +315,7 @@ int displayMenu(const vector<string>& menu, const string& MenuTitle,const string
         gotoxy(0, nOption*2 + YPositionOfESC);
         cout << "Press ESC to back.";
 
+        gotoxy(2, 2);
         for(int i = 0; i < nOption; ++i){
             gotoxy(2, 3+i*2);
             if (i == selected){

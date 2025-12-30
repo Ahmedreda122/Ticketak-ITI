@@ -418,7 +418,7 @@ public:
         };
 
         do {
-            if (!showForm(&eventId, EventIdField, errorMsg)) return nullptr;
+            if (!showForm(&eventId, EventIdField, errorMsg, 0 , 15)) return nullptr;
             errorMsg = "";
             Event* e = EventManager::getInstance().getEvent(eventId);
             if (e != nullptr) return e;
@@ -441,38 +441,43 @@ public:
         return false;
     }
 
+    void getEventsMenu(vector<string>& eventsMenu, const vector<Event>& events){
+        for (const Event& e : events){
+            eventsMenu.push_back(e.viewDetailsBreifly());
+        }
+    }
+
     int viewEventsPage() {
         EventManager& eventManager = EventManager::getInstance();
         vector<string> eventsMenu;
+        const vector<Event>& events = eventManager.getEvents();
+        int selectedTicketType = 0;
+        int selectedEvent = 0;
 
-        // Loop through events
-        for(int i = 0; i < eventManager.getEvents().size(); i++)
-        {
-            Event tempEvent = eventManager.getEvents()[i];
-            eventsMenu.push_back(tempEvent.viewDetailsBreifly());
-        }
+        // getEventsMenu
+        getEventsMenu(eventsMenu, events);
 
-        int selectedEvent = displayMenu(eventsMenu, "Current Events");
-
-        // if user clicks ESC
-        if(selectedEvent == -1)
-        {
-            return -1;
-        }
-
-        // when user chooses event, then make him choose ticket type of event and also show event details
-        int selectedTicketType = displayMenu(
-            vector<string>{"1-VIP\n", "2-Economic\n", "3-Regular\n"},
-            "Choose your ticket type",
-            "Event details",
-            eventManager.getEvent(selectedEvent)->viewDetails(),
-            15
-        );
-
-        // if user clicks ESC
-        if(selectedTicketType == -1)
-        {
-            return -1;
+        while (true) {
+            int selectedEvent = displayMenu(eventsMenu, "Current Events");
+    
+            // if user clicks ESC
+            if (selectedEvent == -1){
+                return -1;
+            }
+    
+            // when user chooses event, then make him choose ticket type of event and also show event details
+            int selectedTicketType = displayMenu(
+                vector<string>{"1-VIP\n", "2-Economic\n", "3-Regular\n"},
+                "Choose your ticket type",
+                "Event details",
+                events[selectedEvent - 1].viewDetails(),
+                15
+            );
+    
+            // if user clicks ESC
+            if (selectedTicketType == -1){
+                continue;
+            } else break;
         }
 
         // navigate to purchase page
@@ -480,19 +485,19 @@ public:
         switch (selectedTicketType) {
             case 1:
                 selectedTicketTypePrice.type = TicketType::VIP;
-                selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getVipTickets().price;
+                selectedTicketTypePrice.price = events[selectedEvent-1].getVipTickets().price;
                 break;
             case 2:
                 selectedTicketTypePrice.type = TicketType::Economic;
-                selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getEconomicTickets().price;
+                selectedTicketTypePrice.price = events[selectedEvent-1].getEconomicTickets().price;
                 break;
             case 3:
                 selectedTicketTypePrice.type = TicketType::Regular;
-                selectedTicketTypePrice.price = eventManager.getEvents()[selectedEvent-1].getRegularTickets().price;
+                selectedTicketTypePrice.price = events[selectedEvent-1].getRegularTickets().price;
                 break;
         }
 
-        purchasePage(selectedEvent, selectedTicketTypePrice);
+        purchasePage(events[selectedEvent-1].getId(), selectedTicketTypePrice);
 
         return 0;
     }
@@ -561,21 +566,93 @@ public:
 
             string ticketDetails = currentFan->getTicketDetails(choice - 1);
 
-            vector<string> backOption = {"Press ESC to go back\n"};
-            displayMenu(backOption, "====== Ticket Details ======", "", ticketDetails, 15);
+            displayMenu(vector<string>(), ticketDetails, "", "", 8);
         }
 
         return 0;
     }
 
-    int viewFanMenu()
-    {
+    int searchMenu() {
+        vector<string> searchOptions = {
+            "1- Search By Name\n",
+            "2- Search By Category\n",
+            "3- Search By ID\n"
+        };
+
+        while (true) {
+            int choice = displayMenu(searchOptions, "======= Search For Event =======");
+            vector<Event> matchedEvents;
+            int exit = false;
+            switch(choice){
+                case 1: {
+                    string name;
+                    vector<Field> nameField {{
+                        "Event Name:",
+                        30,
+                        "A-Za-z ",
+                        [](void* obj, const char* v) {
+                            *static_cast<string*>(obj) = v;
+                        }
+                    }};
+                    if (!showForm(&name, nameField)) {exit = true; break;}
+                    matchedEvents = searchEventsByName(name);
+                    break;
+                }
+                case 2: {
+                    vector<string> categories = {
+                            "1- Sports\n",
+                            "2- Parties\n",
+                            "3- Carnivals\n",
+                            "4- Other\n"
+                        };
+
+                    int category = displayMenu(categories, "======= Event Categories =======", "Choose a Event Category to Search by", "", 6); 
+                    
+                    if (choice == -1) {exit = true; break;}
+                    matchedEvents = searchEventsByCategory(static_cast<Category>(category));
+                    break;
+                }
+                case 3: {
+                    Event* event = getEventIdFromUser();
+                    if (event == nullptr) {exit = true; break;}
+                    matchedEvents.push_back(*event);
+                    break;
+                }
+                case -1: 
+                    return -1;
+            }
+
+            if (exit) continue;
+
+            if (!matchedEvents.empty()) {
+                vector<string> eventsMenu;
+                getEventsMenu(eventsMenu, matchedEvents);
+
+                while (true) {
+                    int selectedEventIndex = displayMenu(eventsMenu, "Search Results");
+                
+                    // Back to Search Menu
+                    if (selectedEventIndex == -1){
+                        break;
+                    }
+    
+                    displayMenu(vector<string>(), "====== Event Details ======",
+                        matchedEvents[selectedEventIndex - 1].viewDetails(),
+                        "", 14
+                    );
+                }
+            }
+        }
+    }
+
+    int viewFanMenu(){
         if (!isFan()) return -1;
 
         vector<string> fanOptions = {
-            "1- View Events\n",
+            "1- Explore Events\n",
             "2- My Tickets\n",
-            "3- Logout\n"
+            "3- Search for Event\n",
+            "4- Logout\n"
         };
 
         while (true) {
@@ -588,16 +665,18 @@ public:
             );
 
             switch (choice) {
-                case 1:
-                    viewEventsPage();
-                    break;
-                case 2:
-                    viewMyTicketsPage();
-                    break;
-                case 3:
-                    logout();
-                case -1:
-                    return -1;
+            case 1:
+                viewEventsPage();
+                break;
+            case 2:
+                viewMyTicketsPage();
+                break;
+            case 3:
+                searchMenu();
+                break;
+            case 4:
+                logout();
+                return -1;
             }
         }
     }
@@ -641,7 +720,7 @@ public:
         bool cancelForm = false;
         int errorCount = 0;
         do {
-            if (!showForm(&fan, registerFormFields, errorMsg, errorCount))
+            if (!showForm(&fan, registerFormFields, errorMsg, errorCount, 21))
                 cancelForm = true;
 
             // reset the errors
@@ -684,7 +763,26 @@ public:
                 matchedEvents.push_back(event);
             }
         }
-        return allEvents;
+        return matchedEvents;
+    }
+
+    vector<Event> searchEventsByName(const string& name) {
+        const vector<Event>& allEvents = EventManager::getInstance().getEvents();
+        vector<Event> matchedEvents;
+
+        // helper function to lowercase a string
+        auto toLower = [](string s) {
+            transform(s.begin(), s.end(), s.begin(), ::tolower);
+            return s;
+        };
+
+        for (const Event &event: allEvents) {
+            // if Event Name Contains the input name (case insensitive) then push it into matchedEvents
+            if (toLower(event.getName()).find(toLower(name)) != string::npos) {
+                matchedEvents.push_back(event);
+            }
+        }
+        return matchedEvents;
     }
 
     bool purchasePage(int selectedEventId , TicketTypePrice selectedTicketTypePrice)
@@ -694,10 +792,11 @@ public:
             "Choose your payment method",
             "Ticket price ", "  " + to_string(selectedTicketTypePrice.price), 7
         );
+
         PaymentService paymentService;
         system("cls");
         // handle ESC case
-        if(selectedPaymentMethod == -1)
+        if (selectedPaymentMethod == -1)
         {
             return false;
         }
@@ -791,7 +890,7 @@ public:
             string errorMsg = "";
             do {
                 LoginDTO user;
-                if (!showForm(&user, loginFormFields, errorMsg)) {
+                if (!showForm(&user, loginFormFields, errorMsg, 0, 15)) {
                     // if user press on ESC to return to Choosing User Type Menu
                     abortLoginFormFill = true;
                     break;
@@ -872,6 +971,9 @@ int main() {
     Admin admin("Karim", "a", "p", 'M', "01065243880");
     AdminManager::getInstance().addAdmin(admin);
 
+    Fan fan("Ahmad", "f", "p", 'M', "01065246880");
+    FanManager::getInstance().addFan(fan);
+
     EventManager& eventManager = EventManager::getInstance();
 
     if (eventManager.getEvents().empty()) {
@@ -894,9 +996,9 @@ int main() {
         Event event2(2, "Football Match", Category::Sports, date2, vip2, eco2, reg2);
         Event event3(3, "City Carnival", Category::Carnivals, date3, vip3, eco3, reg3);
 
+        eventManager.addEvent(event3);
         eventManager.addEvent(event1);
         eventManager.addEvent(event2);
-        eventManager.addEvent(event3);
     }
 
     SystemManager app;

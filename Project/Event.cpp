@@ -8,9 +8,10 @@
 using namespace std;
 
 enum class Category {
-    Sports,
-    Parties,
-    Carnivals
+    Sports = 1,
+    Parties = 2,
+    Carnivals = 3,
+    Other = 4
 };
 struct TicketTypePriceQuantity {
     TicketType type;
@@ -25,7 +26,7 @@ class Event {
 private:
     int id;
     string name;
-    Category category;
+    Category category = Category::Other;
     int capacity;
     int availableTickets;
     // tickets vector should be removed as we will store each ticket type and number of tickets available of it instead
@@ -226,9 +227,8 @@ public:
         return createdTicket;
     }
 
-    string viewDetailsBreifly()
-    {
-        return "Name: "+name+" , Category: "+categoryToString(category)+" , Date: "+dateToString(date);
+    string viewDetailsBreifly() const {
+        return "Event #"+to_string(id)+", Name: "+name+", Category: "+categoryToString(category)+", Date: "+dateToString(date);
     }
 
     string viewDetails() const
