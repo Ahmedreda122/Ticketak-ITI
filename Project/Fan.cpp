@@ -43,20 +43,6 @@ public:
         return ticketItems;
     }
 
-    string getTicketsSummary()
-    {
-        if (myTickets.empty())
-            return "You have no tickets yet.";
-
-        string summary = "";
-        for (auto& t : myTickets) {
-            summary += "Ticket ID: " + t.getId()
-                    + " | Type: " + t.getType()
-                    + " | Price: " + to_string(t.getPrice()) + "\n";
-        }
-        return summary;
-    }
-
     string getTicketDetails(int index)
     {
         if (index < 0 || index >= (int)myTickets.size()) {
