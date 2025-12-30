@@ -485,7 +485,7 @@ public:
         getEventsMenu(eventsMenu, events);
 
         while (true) {
-            int selectedEvent = displayMenu(eventsMenu, "Current Events");
+            selectedEvent = displayMenu(eventsMenu, "Current Events");
     
             // if user clicks ESC
             if (selectedEvent == -1){
@@ -493,7 +493,7 @@ public:
             }
     
             // when user chooses event, then make him choose ticket type of event and also show event details
-            int selectedTicketType = displayMenu(
+            selectedTicketType = displayMenu(
                 vector<string>{"1-VIP\n", "2-Economic\n", "3-Regular\n"},
                 "Choose your ticket type",
                 "Event details",
@@ -527,6 +527,79 @@ public:
         purchasePage(events[selectedEvent-1].getId(), selectedTicketTypePrice);
 
         return 0;
+    }
+
+    bool purchasePage(int selectedEventId, TicketTypePrice selectedTicketTypePrice) {
+        int selectedPaymentMethod = displayMenu(
+                vector<string>{"1-Fawry Pay\n", "2-Credit Card\n"},
+                "Choose your payment method",
+                "Ticket price ", "  " + to_string(selectedTicketTypePrice.price), 7
+        );
+
+        PaymentService paymentService;
+        system("cls");
+        // handle ESC case
+        if (selectedPaymentMethod == -1)
+        {
+            return false;
+        }
+            // User select to pay with Fawry
+        else if (selectedPaymentMethod == 1) {
+            PaymentMethod *fawry = new FawryPay();
+            paymentService.setPaymentMethod(fawry);
+        }
+            // User select to pay with Credit Card
+        else if (selectedPaymentMethod == 2) {
+            vector<Field> creditCardFields = {
+                    {
+                            "Cardholder Name:",   30, "A-Za-z ",
+                            [](void *cc, const char *input) {
+                                ((CreditCard *) cc)->setName(input);
+                            }
+                    },
+                    {
+                            "Card Number:",       16, "0-9",
+                            [](void *cc, const char *input) {
+                                ((CreditCard *) cc)->setCardNumber(input);
+                            }
+                    },
+                    {
+                            "CVV:",               4,  "0-9",
+                            [](void *cc, const char *input) {
+                                ((CreditCard *) cc)->setCvv(input);
+                            }
+                    },
+                    {
+                            "Exp Date(MM-YYYY):", 7,  "0-9-",
+                            [](void *cc, const char *input) {
+                                ((CreditCard *) cc)->setExpiryDate(input);
+                            }
+                    }
+            };
+            PaymentMethod *creditCard = new CreditCard("", "", "", "");
+            if (!showForm(creditCard, creditCardFields)) {
+                cout << "Credit card entry canceled!\n";
+                return false;
+            }
+            system("cls");
+            paymentService.setPaymentMethod(creditCard);
+        }
+
+        // pay for ticket
+        paymentService.processPayment(selectedTicketTypePrice.price);
+
+        // after pay for ticket we will book ticket for that event
+        EventManager &eventManager = EventManager::getInstance();
+        Event *event = eventManager.getEvent(selectedEventId);
+        Ticket createdTicket = event->bookEvent(currentFan->getId(), selectedTicketTypePrice);
+        // case booking is failed
+        if (createdTicket.getId() == "0") {
+            display(43, "Unavailable tickets please try again later.", 43, 0, 2, 50);
+            return false;
+        }
+        // Add created ticket to current fan tickets
+        currentFan->buyTicket(createdTicket);
+        return true;
     }
 
     int viewAdminMenu() {
@@ -810,79 +883,6 @@ public:
             }
         }
         return matchedEvents;
-    }
-
-    bool purchasePage(int selectedEventId, TicketTypePrice selectedTicketTypePrice) {
-        int selectedPaymentMethod = displayMenu(
-                vector<string>{"1-Fawry Pay\n", "2-Credit Card\n"},
-                "Choose your payment method",
-                "Ticket price ", "  " + to_string(selectedTicketTypePrice.price), 7
-        );
-
-        PaymentService paymentService;
-        system("cls");
-        // handle ESC case
-        if (selectedPaymentMethod == -1)
-        {
-            return false;
-        }
-            // User select to pay with Fawry
-        else if (selectedPaymentMethod == 1) {
-            PaymentMethod *fawry = new FawryPay();
-            paymentService.setPaymentMethod(fawry);
-        }
-            // User select to pay with Credit Card
-        else if (selectedPaymentMethod == 2) {
-            vector<Field> creditCardFields = {
-                    {
-                            "Cardholder Name:",   30, "A-Za-z ",
-                            [](void *cc, const char *input) {
-                                ((CreditCard *) cc)->setName(input);
-                            }
-                    },
-                    {
-                            "Card Number:",       16, "0-9",
-                            [](void *cc, const char *input) {
-                                ((CreditCard *) cc)->setCardNumber(input);
-                            }
-                    },
-                    {
-                            "CVV:",               4,  "0-9",
-                            [](void *cc, const char *input) {
-                                ((CreditCard *) cc)->setCvv(input);
-                            }
-                    },
-                    {
-                            "Exp Date(MM-YYYY):", 7,  "0-9-",
-                            [](void *cc, const char *input) {
-                                ((CreditCard *) cc)->setExpiryDate(input);
-                            }
-                    }
-            };
-            PaymentMethod *creditCard = new CreditCard("", "", "", "");
-            if (!showForm(creditCard, creditCardFields)) {
-                cout << "Credit card entry canceled!\n";
-                return false;
-            }
-            system("cls");
-            paymentService.setPaymentMethod(creditCard);
-        }
-
-        // pay for ticket
-        paymentService.processPayment(selectedTicketTypePrice.price);
-
-        // after pay for ticket we will book ticket for that event
-        EventManager &eventManager = EventManager::getInstance();
-        Event *event = eventManager.getEvent(selectedEventId);
-        Ticket createdTicket = event->bookEvent(currentFan->getId(), selectedTicketTypePrice);
-        // case booking is failed
-        if (createdTicket.getId() == "0") {
-            display(43, "Unavailable tickets please try again later.", 43, 0, 2, 50);
-            return false;
-        }
-        // Add created ticket to current fan tickets
-        currentFan->buyTicket(createdTicket);
-        return true;
     }
 
     int viewLoginForm() {
