@@ -430,6 +430,7 @@ public:
                 errorMsg = "Event ID is not found";
             }
         } while(!isValidId);
+        return nullptr;
     }
 
     bool viewEditEventForm(Event* event) {
@@ -553,6 +554,7 @@ public:
                 ticketOptions,
                 "====== My Tickets ======",
                 "Select a ticket to view details",
+                "",
                 5
             );
 
