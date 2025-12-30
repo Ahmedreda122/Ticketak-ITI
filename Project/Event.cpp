@@ -64,11 +64,117 @@ public:
         return regularTickets;
     }
 
+    int getId() const { return id; }
+
+    string getName() const { return name; }
+
+    Category getCategory() const {
+        return category;
+    }
+
+    int getDay() const {
+        return date.day;
+    }
+
+    int getMonth() const {
+        return date.month;
+    }
+
+    int getYear() const {
+        return date.year;
+    }
+
+    string getTicketPriceStr(TicketType type) const {
+        switch (type) {
+            case TicketType::VIP:
+                return to_string(vipTickets.price);
+            case TicketType::Regular:
+                return to_string(regularTickets.price);
+            case TicketType::Economic:
+                return to_string(economicTickets.price);
+            default:
+                return "0";
+        }
+    }
+
+    string getTicketQuantityStr(TicketType type) const {
+        switch (type) {
+            case TicketType::VIP:
+                return to_string(vipTickets.quantity);
+            case TicketType::Regular:
+                return to_string(regularTickets.quantity);
+            case TicketType::Economic:
+                return to_string(economicTickets.quantity);
+            default:
+                return "0";
+        }
+    }
+
+    void setDay(int day) {
+        this->date.day = day;
+    }
+
+    void setMonth(int month) {
+        this->date.month = month;
+    }
+
+    void setYear(int year) {
+        this->date.year = year;
+    }
+
+    void setTicketPrice(TicketType type, double price) {
+        switch (type) {
+            case TicketType::VIP:
+                vipTickets.price = price;
+                break;
+            case TicketType::Regular:
+                regularTickets.price = price;
+                break;
+            case TicketType::Economic:
+                economicTickets.price = price;
+                break;
+        }
+    }
+
+    void setTicketQuantity(TicketType type, int quantity) {
+        switch (type) {
+            case TicketType::VIP:
+                vipTickets.quantity = quantity;
+                break;
+            case TicketType::Regular:
+                regularTickets.quantity = quantity;
+                break;
+            case TicketType::Economic:
+                economicTickets.quantity = quantity;
+                break;
+        }
+
+        // keep totals consistent
+        capacity = vipTickets.quantity +
+                regularTickets.quantity +
+                economicTickets.quantity;
+
+        availableTickets = capacity;
+    }
+
+    void setId(int id) {
+        this->id = id;
+    }
+
+    void setName(const string& name) {
+        this->name = name;
+    }
+
+    void setCategory(Category category) {
+        this->category = category;
+    }
+
     string dateToString(Date date) const{
         string d = (date.day < 10 ? "0" : "") + to_string(date.day);
         string m = (date.month < 10 ? "0" : "") + to_string(date.month);
         return d + "-" + m + "-" + to_string(date.year);
     }
+
     string categoryToString(Category category) const{
         switch(category) {
             case Category::Sports: return "Sports";
@@ -119,10 +225,12 @@ public:
         tickets.push_back(createdTicket);
         return createdTicket;
     }
+
     string viewDetailsBreifly()
     {
         return "Name: "+name+" , Category: "+categoryToString(category)+" , Date: "+dateToString(date);
     }
+
     string viewDetails() const
     {
         return "  Event #" + to_string(id) + "\n  Name: " + name + "\n  Category: " + categoryToString(category) +
@@ -142,7 +250,9 @@ public:
         cout<<"Economic Ticket Price: "<<economicTickets.price<<" , Economic Available Tickets: "<<economicTickets.quantity<<endl;
         */
     }
+
     string getEventStatus();
+
     void expireTickets()
     {
         for(int i=0;i<tickets.size();i++)
@@ -151,10 +261,6 @@ public:
         }
     }
 
-    int getId() const { return id; }
-    Category getCategory() const {
-        return category;
-    }
     // Helper to populate tickets
     void addTicket(Ticket t) { tickets.push_back(t); }
 };

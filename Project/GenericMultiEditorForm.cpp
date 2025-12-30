@@ -21,12 +21,12 @@ struct Field {
     // function<> allows you to store a function in a variable like PHP
     function<void(void*, const char*)> setter;
 
-    char* oldValue = nullptr;
+    string oldValue = "";
 };
 
 void gotoxy(int x,int y);
 void textattr(int i);
-bool showForm(void* object, vector<Field>& fields, string errorMessage="", int errorCount = 0);
+bool showForm(void* object, vector<Field>& fields, string errorMessage = "", int errorCount = 0, const int inputX = 21);
 void display(int nChar, char* arr, int cursor, int xPos, int yPos, int len);
 bool isCharAllowed(char ch, const string& regexStr);
 char** multiLineEditor(int* xPos, int* yPos, int* len, char** str, string* regexStrs, int N, int errorCount);
@@ -34,10 +34,10 @@ int displayMenu(const vector<string>& menu, const string& MenuTitle = "=======Me
 int displayMenu(const vector<string>& menu, const string& MenuTitle, const string& MenuDescription, int YPositionOfESC);
 
 // Generic Form to fill an Object
-bool showForm(void* object, vector<Field>& fields, string errorMessage, int errorCount) {
+bool showForm(void* object, vector<Field>& fields, string errorMessage, int errorCount, const int inputX) {
     int n = fields.size();
     const int labelX = 2;
-    const int inputX = 21;
+    //const int inputX = 21;
     const int startY = 1;
 
     int* xPos = new int[n];
@@ -61,7 +61,9 @@ bool showForm(void* object, vector<Field>& fields, string errorMessage, int erro
         regexStrs[i] = fields[i].regexStr;
         // Writes len[i] (+1 for null-terminator char) characters from fields[i].oldvalue if exist
         // to oldValues[i] using "%s" format (which means as string)
-        snprintf(oldValues[i], len[i]+1, "%s", fields[i].oldValue ? fields[i].oldValue : "");
+        int len = fields[i].oldValue.size();
+        if (fields[i].len < len) len = fields[i].len;
+        snprintf(oldValues[i], len+1, "%.*s", len, fields[i].oldValue.c_str());
     }
 
     if (!errorMessage.empty()) {
@@ -102,7 +104,6 @@ char** multiLineEditor(int* xPos, int* yPos, int* len, char** str, string* regex
     int* cursor = new int[N]{};
 
     for(int i = 0; i < N; ++i){
-        //str[i] = new char[len[i] + 1];
         current[i] = first[i] = str[i];
         last[i] = str[i] + (strlen(str[i]));
         display((int)strlen(str[i]), str[i], cursor[i], xPos[i], yPos[i], len[i]);
@@ -323,14 +324,15 @@ int displayMenu(const vector<string>& menu, const string& MenuTitle,const string
             }
             cout << menu[i];
         }
-        if(MenuDescription != "")
-        {
-            textattr(0x007);
-            cout<<"\n" + MenuDescriptionTitle<<endl;
-            cout<<endl;
-            cout<<MenuDescription<<endl;
-        }
+        
         textattr(0x007); // reset colors
+
+        if (MenuDescriptionTitle != ""){
+            cout<< "\n" + MenuDescriptionTitle<< endl;
+            if (!MenuDescription.empty())
+                cout << "\n" << MenuDescription << endl;
+        }
+        
         char ch = getch();
         switch(ch){
         case -32:{
