@@ -474,13 +474,6 @@ public:
         }
     }
 
-    void getEventsMenu(vector<string>& eventsMenu, const vector<Event>& events){
-        for (const Event& e : events){
-            eventsMenu.push_back(e.viewDetailsBreifly());
-        }
-    }
-
-
     int viewEventsPage() {
         EventManager &eventManager = EventManager::getInstance();
         vector<string> eventsMenu;
