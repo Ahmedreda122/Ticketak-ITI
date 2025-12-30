@@ -221,7 +221,6 @@ public:
 
     vector<EventField>& createEventFormFields() {
         static vector<EventField> fields = {
-            // -------- BASIC INFO --------
             {
                 {
                     "Event Name:",
@@ -345,7 +344,6 @@ public:
         return fields;
     }
 
-
     void fillEditEventData(vector<EventField>& fields, const Event& event) {
         for (auto& f : fields) {
             switch (f.id) {
@@ -391,13 +389,12 @@ public:
         }
     }
 
-
     bool viewCreateEventForm() {
         vector<EventField>& eventFields = createEventFormFields();
         Event event;
         vector<Field> fields(
-            make_move_iterator(eventFields.begin()),
-            make_move_iterator(eventFields.end())
+            eventFields.begin(),
+            eventFields.end()
         );
         if (showForm(&event, fields, "", 0, 30)) {
             EventManager::getInstance().addEvent(event);
@@ -437,8 +434,8 @@ public:
         vector<EventField>& eventFields = createEventFormFields();
         fillEditEventData(eventFields, *event);
         vector<Field> fields(
-            make_move_iterator(eventFields.begin()),
-            make_move_iterator(eventFields.end())
+            eventFields.begin(),
+            eventFields.end()
         );
         if (showForm(event, fields, "", 0, 30)) return true;
         return false;
@@ -871,8 +868,8 @@ void SystemManager::run() {
 // ================= MAIN (ENTRY POINT) =================
 
 int main() {
-    Admin admin("Karim", "admin@ticketak.com", "password", 'M', "01065243880");
-    //Admin admin("Karim", "a", "p", 'M', "01065243880");
+    //Admin admin("Karim", "admin@ticketak.com", "password", 'M', "01065243880");
+    Admin admin("Karim", "a", "p", 'M', "01065243880");
     AdminManager::getInstance().addAdmin(admin);
 
     EventManager& eventManager = EventManager::getInstance();
