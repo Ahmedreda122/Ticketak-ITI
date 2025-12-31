@@ -364,10 +364,10 @@ public:
             6
         );
 
-        // If user presses ESC, return default category
-        if (choice == -1) {
+        // If user presses ESC, return -1 cast to Category to signal ESC press
+        if (choice == -1)
+{
             return static_cast<Category>(-1);
-;
         }
 
         return static_cast<Category>(choice);
@@ -497,17 +497,22 @@ public:
                     eventFields.end()
             );
 
-            if (!showForm(event, fields, error, errC, 30))
-                return false;
+            if (newCategory == static_cast<Category>(-1)) return false;
 
-            errC = event->isValid(error);
+            while(true)
+            {
+                if (!showForm(event, fields, error, errC, 30))
+                    break;
 
-            if (!errC) {
-                // set
-                system("cls");
-                cout << "Event #" << event->getId() << " is edited successfully";
-                Sleep(2000);
-                return true;
+                errC = event->isValid(error);
+
+                if (!errC) {
+                    // set
+                    system("cls");
+                    cout << "Event #" << event->getId() << " is edited successfully";
+                    Sleep(2000);
+                    return true;
+                }
             }
         }
     }
@@ -774,13 +779,12 @@ public:
                     Category selectedCategory = getCategoryFromUser("Select Category to Search");
 
                     //Check if user pressed ESC
-                    if (selectedCategory == Category::Other && choice == -1)
+                    if (selectedCategory == static_cast<Category>(-1))
                     {
                         exit = true;
                         break;
                     }
 
-                    if (choice == -1) {exit = true; break;}
                     matchedEvents = searchEventsByCategory(selectedCategory);
                     break;
                 }
