@@ -691,7 +691,7 @@ private:
                         }
                 };
                 PaymentMethod *creditCard = new CreditCard("", "", "", "");
-                if (!showForm(creditCard, creditCardFields)) {
+                if (!showForm(creditCard, creditCardFields , "" , 0, 21)) {
                     cout << "Credit card entry canceled!\n";
                     continue;
                 }
@@ -802,7 +802,10 @@ private:
 
             string ticketDetails = currentFan->getTicketDetails(choice - 1);
 
-            displayMenu(vector<string>(), "", ticketDetails, "", 11);
+            if(displayMenu(vector<string>(), ticketDetails, "", "", 8) == -1)
+            {
+             continue;
+            }
             return 0;
         }
         return 0;
