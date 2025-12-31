@@ -599,6 +599,9 @@ public:
         }
         // Add created ticket to current fan tickets
         currentFan->buyTicket(createdTicket);
+        system("cls");
+        cout << "Payment is Completed Successfully, Backing to Main Menu in 2 Sec.";
+        Sleep(2000);
         return true;
     }
 
@@ -609,7 +612,9 @@ public:
                 "1- Create Event\n",
                 "2- Edit Event\n",
                 "3- Delete Event\n",
-                "4- Log out\n"
+                "4- View Events\n",
+                "5- Search For Event\n",
+                "6- Log out\n"
         };
 
         while (true) {
@@ -631,12 +636,13 @@ public:
                     viewEditEventForm(e);
                     break;
                 }
-                case 3:
+                case 5:
+                    searchMenu();
                     break;
-                case 4:
+                case 6: {
                     logout();
-                case -1:
                     return -1;
+                }
             }
         }
     }
@@ -848,52 +854,26 @@ public:
             }
 
             if (!errorCount) {
-                if (AuthenticationService::_register(fan)) return true;
+                if (AuthenticationService::_register(fan)) {
+                    system("cls");
+                    cout << "Registration is done successfully, Forwarding to Login Page in 2 sec\n";
+                    Sleep(2000);
+                    return true;
+                }
             }
         } while (!cancelForm);
         return false;
     }
 
-    vector<Event> searchEventsByCategory(Category category) {
-        EventManager &eventManager = EventManager::getInstance();
-        vector<Event> allEvents = eventManager.getEvents();
-        vector<Event> matchedEvents;
-        for (const Event &event: allEvents) {
-            if (event.getCategory() == category) {
-                matchedEvents.push_back(event);
-            }
-        }
-        return matchedEvents;
-    }
-
-    vector<Event> searchEventsByName(const string& name) {
-        const vector<Event>& allEvents = EventManager::getInstance().getEvents();
-        vector<Event> matchedEvents;
-
-        // helper function to lowercase a string
-        auto toLower = [](string s) {
-            transform(s.begin(), s.end(), s.begin(), ::tolower);
-            return s;
-        };
-
-        for (const Event &event: allEvents) {
-            // if Event Name Contains the input name (case insensitive) then push it into matchedEvents
-            if (toLower(event.getName()).find(toLower(name)) != string::npos) {
-                matchedEvents.push_back(event);
-            }
-        }
-        return matchedEvents;
-    }
-
     int viewLoginForm() {
         vector<Field> loginFormFields = {
-                {
-                        "Email:",    50, EMAIL_ALLOWED_CHARS,
-                        [](void *user, const char *emailInput) {
-                            ((LoginDTO *) user)->email = emailInput;
-                        }
-                },
-                {
+            {
+                "Email:",    50, EMAIL_ALLOWED_CHARS,
+                [](void *user, const char *emailInput) {
+                    ((LoginDTO *) user)->email = emailInput;
+                }
+            },
+            {
                         "Password:", 50, " -~",
                         [](void *user, const char *pass) {
                             ((LoginDTO *) user)->password = pass;
@@ -907,9 +887,9 @@ public:
             int user_type = displayMenu(vector<string>{"1-Fan\n", "2-Admin\n"}, "You want sign in as");
             // if user Press on ESC to back to main menu
             if (user_type == -1) { return -1; }
-
+            
             User *currentUser = nullptr;
-
+            
             string errorMsg = "";
             do {
                 LoginDTO user;
@@ -918,9 +898,9 @@ public:
                     abortLoginFormFill = true;
                     break;
                 }
-
+                
                 UserType userType = static_cast<UserType>(user_type);
-
+                
                 currentUser = AuthenticationService::login(user, userType);
                 if (currentUser != nullptr) {
                     if (userType == UserType::Fan) {
@@ -938,19 +918,54 @@ public:
             } while (currentUser == nullptr);
 
         } while (abortLoginFormFill);
-
+        
         return -1;
+    }
+
+    vector<Event> searchEventsByCategory(Category category) {
+        EventManager &eventManager = EventManager::getInstance();
+        vector<Event> allEvents = eventManager.getEvents();
+        vector<Event> matchedEvents;
+        for (const Event &event: allEvents) {
+            if (event.getCategory() == category) {
+                matchedEvents.push_back(event);
+            }
+        }
+        return matchedEvents;
+    }
+    
+    vector<Event> searchEventsByName(const string& name) {
+        const vector<Event>& allEvents = EventManager::getInstance().getEvents();
+        vector<Event> matchedEvents;
+    
+        // helper function to lowercase a string
+        auto toLower = [](string s) {
+            transform(s.begin(), s.end(), s.begin(), ::tolower);
+            return s;
+        };
+    
+        for (const Event &event: allEvents) {
+            // if Event Name Contains the input name (case insensitive) then push it into matchedEvents
+            if (toLower(event.getName()).find(toLower(name)) != string::npos) {
+                matchedEvents.push_back(event);
+            }
+        }
+        return matchedEvents;
     }
 };
 
 
 void SystemManager::run() {
     vector<string> menu = {"1- Login\n", "2- Register\n",};
-
+    
     while (true) {
         int choice = displayMenu(menu, "====================Welcome to Ticketak======================");
 
         switch (choice) {
+            case 2: { // Register
+                if (!viewRegisterForm()) break;
+                // else forwarding to login page
+            }
             // Login
             case 1: {
 
@@ -971,10 +986,6 @@ void SystemManager::run() {
                         break;
                     }
                 }
-                break;
-            }
-            case 2: { // Register
-                viewRegisterForm();
                 break;
             }
             case -1: {
