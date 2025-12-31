@@ -366,7 +366,8 @@ public:
 
         // If user presses ESC, return default category
         if (choice == -1) {
-            return defaultCategory;
+            return static_cast<Category>(-1);
+;
         }
 
         return static_cast<Category>(choice);
@@ -423,10 +424,13 @@ public:
         string error;
         int errC = 0;
         Event event;
-        
+
         while (true) {
             Category selectedCategory = getCategoryFromUser("Select Category for New Event");
-            // if (selectedCategory == -1) return false;
+
+            if (selectedCategory == static_cast<Category>(-1)) return false;
+
+
             while (true) {
                 if (!showForm(&event, fields, error, errC, 30))
                     break;
@@ -440,7 +444,7 @@ public:
                     cout << "Event #" << EventManager::getInstance().getNEvents() << " is created successfully";
                     Sleep(2000);
                     return true;
-                } 
+                }
             }
         }
     }
