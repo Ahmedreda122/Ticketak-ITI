@@ -399,7 +399,7 @@ public:
         int errC = 0;
         while (true) {
             Event event;
-
+            // call category menu
             if (!showForm(&event, fields, error, errC, 30))
                 return false;
 
@@ -407,6 +407,7 @@ public:
 
             if (!errC) {
                 EventManager::getInstance().addEvent(event);
+                // set category
                 system("cls");
                 cout << "Event #" << EventManager::getInstance().getNEvents() << " is created successfully";
                 Sleep(2000);
@@ -447,6 +448,7 @@ public:
         string error;
         int errC = 0;
         while (true) {
+            // call => parameter old category 
             fillEditEventData(eventFields, *event);
 
             vector<Field> fields(
@@ -460,6 +462,7 @@ public:
             errC = event->isValid(error);
 
             if (!errC) {
+                // set
                 system("cls");
                 cout << "Event #" << event->getId() << " is edited successfully";
                 Sleep(2000);
@@ -491,98 +494,105 @@ public:
             if (selectedEvent == -1){
                 return -1;
             }
-    
-            // when user chooses event, then make him choose ticket type of event and also show event details
-            selectedTicketType = displayMenu(
-                vector<string>{"1-VIP\n", "2-Economic\n", "3-Regular\n"},
-                "Choose your ticket type",
-                "Event details",
-                events[selectedEvent - 1].viewDetails(),
-                15
-            );
-    
-            // if user clicks ESC
-            if (selectedTicketType == -1){
-                continue;
-            } else break;
+            
+            while (true) {
+                // when user chooses event, then make him choose ticket type of event and also show event details
+                selectedTicketType = displayMenu(
+                    vector<string>{"1-VIP\n", "2-Economic\n", "3-Regular\n"},
+                    "Choose your ticket type",
+                    "Event details",
+                    events[selectedEvent - 1].viewDetails(),
+                    15
+                );
+        
+                // if user clicks ESC
+                if (selectedTicketType == -1){
+                    break;
+                }
+                // navigate to purchase page
+                TicketTypePrice selectedTicketTypePrice;
+                switch (selectedTicketType) {
+                    case 1:
+                        selectedTicketTypePrice.type = TicketType::VIP;
+                        selectedTicketTypePrice.price = events[selectedEvent-1].getVipTickets().price;
+                        break;
+                    case 2:
+                        selectedTicketTypePrice.type = TicketType::Economic;
+                        selectedTicketTypePrice.price = events[selectedEvent-1].getEconomicTickets().price;
+                        break;
+                    case 3:
+                        selectedTicketTypePrice.type = TicketType::Regular;
+                        selectedTicketTypePrice.price = events[selectedEvent-1].getRegularTickets().price;
+                        break;
+                }
+        
+                if (!purchasePage(events[selectedEvent-1].getId(), selectedTicketTypePrice)) {
+                    continue;
+                }
+                return 0;
+            }
         }
-
-        // navigate to purchase page
-        TicketTypePrice selectedTicketTypePrice;
-        switch (selectedTicketType) {
-            case 1:
-                selectedTicketTypePrice.type = TicketType::VIP;
-                selectedTicketTypePrice.price = events[selectedEvent-1].getVipTickets().price;
-                break;
-            case 2:
-                selectedTicketTypePrice.type = TicketType::Economic;
-                selectedTicketTypePrice.price = events[selectedEvent-1].getEconomicTickets().price;
-                break;
-            case 3:
-                selectedTicketTypePrice.type = TicketType::Regular;
-                selectedTicketTypePrice.price = events[selectedEvent-1].getRegularTickets().price;
-                break;
-        }
-
-        purchasePage(events[selectedEvent-1].getId(), selectedTicketTypePrice);
-
         return 0;
     }
 
     bool purchasePage(int selectedEventId, TicketTypePrice selectedTicketTypePrice) {
-        int selectedPaymentMethod = displayMenu(
-                vector<string>{"1-Fawry Pay\n", "2-Credit Card\n"},
-                "Choose your payment method",
-                "Ticket price ", "  " + to_string(selectedTicketTypePrice.price), 7
-        );
-
         PaymentService paymentService;
-        system("cls");
-        // handle ESC case
-        if (selectedPaymentMethod == -1)
-        {
-            return false;
-        }
-            // User select to pay with Fawry
-        else if (selectedPaymentMethod == 1) {
-            PaymentMethod *fawry = new FawryPay();
-            paymentService.setPaymentMethod(fawry);
-        }
-            // User select to pay with Credit Card
-        else if (selectedPaymentMethod == 2) {
-            vector<Field> creditCardFields = {
-                    {
-                            "Cardholder Name:",   30, "A-Za-z ",
-                            [](void *cc, const char *input) {
-                                ((CreditCard *) cc)->setName(input);
-                            }
-                    },
-                    {
-                            "Card Number:",       16, "0-9",
-                            [](void *cc, const char *input) {
-                                ((CreditCard *) cc)->setCardNumber(input);
-                            }
-                    },
-                    {
-                            "CVV:",               4,  "0-9",
-                            [](void *cc, const char *input) {
-                                ((CreditCard *) cc)->setCvv(input);
-                            }
-                    },
-                    {
-                            "Exp Date(MM-YYYY):", 7,  "0-9-",
-                            [](void *cc, const char *input) {
-                                ((CreditCard *) cc)->setExpiryDate(input);
-                            }
-                    }
-            };
-            PaymentMethod *creditCard = new CreditCard("", "", "", "");
-            if (!showForm(creditCard, creditCardFields)) {
-                cout << "Credit card entry canceled!\n";
+
+        while (true) {
+            int selectedPaymentMethod = displayMenu(
+                    vector<string>{"1-Fawry Pay\n", "2-Credit Card\n"},
+                    "Choose your payment method",
+                    "Ticket price ", "  " + to_string(selectedTicketTypePrice.price), 7
+            );
+
+            system("cls");
+            // handle ESC case
+            if (selectedPaymentMethod == -1){
                 return false;
             }
-            system("cls");
-            paymentService.setPaymentMethod(creditCard);
+            // User select to pay with Fawry
+            else if (selectedPaymentMethod == 1) {
+                PaymentMethod *fawry = new FawryPay();
+                paymentService.setPaymentMethod(fawry);
+                break;
+            }
+            // User select to pay with Credit Card
+            else if (selectedPaymentMethod == 2) {
+                vector<Field> creditCardFields = {
+                        {
+                                "Cardholder Name:",   30, "A-Za-z ",
+                                [](void *cc, const char *input) {
+                                    ((CreditCard *) cc)->setName(input);
+                                }
+                        },
+                        {
+                                "Card Number:",       16, "0-9",
+                                [](void *cc, const char *input) {
+                                    ((CreditCard *) cc)->setCardNumber(input);
+                                }
+                        },
+                        {
+                                "CVV:",               4,  "0-9",
+                                [](void *cc, const char *input) {
+                                    ((CreditCard *) cc)->setCvv(input);
+                                }
+                        },
+                        {
+                                "Exp Date(MM-YYYY):", 7,  "0-9-",
+                                [](void *cc, const char *input) {
+                                    ((CreditCard *) cc)->setExpiryDate(input);
+                                }
+                        }
+                };
+                PaymentMethod *creditCard = new CreditCard("", "", "", "");
+                if (!showForm(creditCard, creditCardFields)) {
+                    cout << "Credit card entry canceled!\n";
+                    continue;
+                }
+                system("cls");
+                paymentService.setPaymentMethod(creditCard);
+                break;
+            }
         }
 
         // pay for ticket
@@ -687,8 +697,8 @@ public:
             string ticketDetails = currentFan->getTicketDetails(choice - 1);
 
             displayMenu(vector<string>(), ticketDetails, "", "", 8);
+            return 0;
         }
-
         return 0;
     }
 
@@ -719,15 +729,16 @@ public:
                     break;
                 }
                 case 2: {
+
+                    // Make Function to return Category => categoryMenu()
                     vector<string> categories = {
                             "1- Sports\n",
                             "2- Parties\n",
                             "3- Carnivals\n",
                             "4- Other\n"
                         };
-
-                    int category = displayMenu(categories, "======= Event Categories =======", "Choose a Event Category to Search by", "", 6); 
-                    
+                    int category = displayMenu(categories, "======= Event Categories =======", "Choose a Event Category to Search by", "", 6);
+                    /////// 
                     if (choice == -1) {exit = true; break;}
                     matchedEvents = searchEventsByCategory(static_cast<Category>(category));
                     break;

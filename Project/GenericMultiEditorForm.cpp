@@ -329,7 +329,7 @@ int displayMenu(const vector<string>& menu, const string& MenuTitle,const string
         textattr(0x007); // reset colors
 
         if (MenuDescriptionTitle != ""){
-            cout<< "\n" + MenuDescriptionTitle<< endl;
+            cout << "\n" + MenuDescriptionTitle<< endl;
             if (!MenuDescription.empty())
                 cout << "\n" << MenuDescription << endl;
         }
