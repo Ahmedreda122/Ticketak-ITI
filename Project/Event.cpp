@@ -25,7 +25,7 @@ struct Date {
 
 class Event {
 private:
-    int id;
+    int id = 0;
     string name;
     Category category = Category::Other;
     int capacity;

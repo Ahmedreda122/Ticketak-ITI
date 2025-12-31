@@ -347,6 +347,31 @@ public:
         return fields;
     }
 
+    //function to display category menu and get user selection
+    Category getCategoryFromUser(const string& prompt = "Choose Event Category", Category defaultCategory = Category::Other) {
+        vector<string> categories = {
+            "1- Sports\n",
+            "2- Parties\n",
+            "3- Carnivals\n",
+            "4- Other\n"
+        };
+
+        int choice = displayMenu(
+            categories,
+            "======= Event Categories =======",
+            prompt,
+            "",
+            6
+        );
+
+        // If user presses ESC, return default category
+        if (choice == -1) {
+            return defaultCategory;
+        }
+
+        return static_cast<Category>(choice);
+    }
+
     void fillEditEventData(vector<EventField> &fields, const Event &event) {
         for (auto &f: fields) {
             switch (f.id) {
@@ -399,15 +424,22 @@ public:
         int errC = 0;
         while (true) {
             Event event;
+
             // call category menu
+            Category selectedCategory = getCategoryFromUser("Select Category for New Event");
+            event.setCategory(selectedCategory);
+
             if (!showForm(&event, fields, error, errC, 30))
                 return false;
 
             errC = event.isValid(error);
 
             if (!errC) {
-                EventManager::getInstance().addEvent(event);
+
                 // set category
+                event.setId(EventManager::getInstance().getNEvents() + 1);
+                EventManager::getInstance().addEvent(event);
+
                 system("cls");
                 cout << "Event #" << EventManager::getInstance().getNEvents() << " is created successfully";
                 Sleep(2000);
@@ -448,7 +480,15 @@ public:
         string error;
         int errC = 0;
         while (true) {
-            // call => parameter old category 
+            // call => parameter old category
+            Category currentCategory = event->getCategory();
+            Category newCategory = getCategoryFromUser
+            (
+            "Current: " + event->categoryToString(currentCategory) + "\nSelect new category or ESC to keep",
+            currentCategory
+            );
+            event->setCategory(newCategory);
+
             fillEditEventData(eventFields, *event);
 
             vector<Field> fields(
@@ -489,12 +529,12 @@ public:
 
         while (true) {
             selectedEvent = displayMenu(eventsMenu, "Current Events");
-    
+
             // if user clicks ESC
             if (selectedEvent == -1){
                 return -1;
             }
-            
+
             while (true) {
                 // when user chooses event, then make him choose ticket type of event and also show event details
                 selectedTicketType = displayMenu(
@@ -504,7 +544,7 @@ public:
                     events[selectedEvent - 1].viewDetails(),
                     15
                 );
-        
+
                 // if user clicks ESC
                 if (selectedTicketType == -1){
                     break;
@@ -525,7 +565,7 @@ public:
                         selectedTicketTypePrice.price = events[selectedEvent-1].getRegularTickets().price;
                         break;
                 }
-        
+
                 if (!purchasePage(events[selectedEvent-1].getId(), selectedTicketTypePrice)) {
                     continue;
                 }
@@ -712,7 +752,7 @@ public:
         while (true) {
             int choice = displayMenu(searchOptions, "======= Search For Event =======");
             vector<Event> matchedEvents;
-            int exit = false;
+            bool exit = false;
             switch(choice){
                 case 1: {
                     string name;
@@ -731,16 +771,17 @@ public:
                 case 2: {
 
                     // Make Function to return Category => categoryMenu()
-                    vector<string> categories = {
-                            "1- Sports\n",
-                            "2- Parties\n",
-                            "3- Carnivals\n",
-                            "4- Other\n"
-                        };
-                    int category = displayMenu(categories, "======= Event Categories =======", "Choose a Event Category to Search by", "", 6);
-                    /////// 
+                    Category selectedCategory = getCategoryFromUser("Select Category to Search");
+
+                    //Check if user pressed ESC
+                    if (selectedCategory == Category::Other && choice == -1)
+                        {
+                            exit = true;
+                            break;
+                        }
+
                     if (choice == -1) {exit = true; break;}
-                    matchedEvents = searchEventsByCategory(static_cast<Category>(category));
+                    matchedEvents = searchEventsByCategory(selectedCategory);
                     break;
                 }
                 case 3: {
@@ -749,12 +790,20 @@ public:
                     matchedEvents.push_back(*event);
                     break;
                 }
-                case -1: 
+                case -1:
                     return -1;
             }
 
             if (exit) continue;
-            
+
+            //Check if no events found
+            if (matchedEvents.empty()) {
+            system("cls");
+            cout << "No events found matching your search criteria.\n";
+            Sleep(2000);
+            continue;
+        }
+
             viewEvents(matchedEvents, "Search Results");
         }
     }
@@ -766,7 +815,7 @@ public:
 
             while (true) {
                 int selectedEventIndex = displayMenu(eventsMenu, menuMsg);
-            
+
                 // Back to Search Menu
                 if (selectedEventIndex == -1){
                     break;
@@ -916,9 +965,9 @@ public:
             int user_type = displayMenu(vector<string>{"1-Fan\n", "2-Admin\n"}, "You want sign in as");
             // if user Press on ESC to back to main menu
             if (user_type == -1) { return -1; }
-            
+
             User *currentUser = nullptr;
-            
+
             string errorMsg = "";
             do {
                 LoginDTO user;
@@ -927,9 +976,9 @@ public:
                     abortLoginFormFill = true;
                     break;
                 }
-                
+
                 UserType userType = static_cast<UserType>(user_type);
-                
+
                 currentUser = AuthenticationService::login(user, userType);
                 if (currentUser != nullptr) {
                     if (userType == UserType::Fan) {
@@ -947,7 +996,7 @@ public:
             } while (currentUser == nullptr);
 
         } while (abortLoginFormFill);
-        
+
         return -1;
     }
 
@@ -962,17 +1011,17 @@ public:
         }
         return matchedEvents;
     }
-    
+
     vector<Event> searchEventsByName(const string& name) {
         const vector<Event>& allEvents = EventManager::getInstance().getEvents();
         vector<Event> matchedEvents;
-    
+
         // helper function to lowercase a string
         auto toLower = [](string s) {
             transform(s.begin(), s.end(), s.begin(), ::tolower);
             return s;
         };
-    
+
         for (const Event &event: allEvents) {
             // if Event Name Contains the input name (case insensitive) then push it into matchedEvents
             if (toLower(event.getName()).find(toLower(name)) != string::npos) {
@@ -986,7 +1035,7 @@ public:
 
 void SystemManager::run() {
     vector<string> menu = {"1- Login\n", "2- Register\n",};
-    
+
     while (true) {
         int choice = displayMenu(menu, "====================Welcome to Ticketak======================");
 
