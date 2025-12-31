@@ -41,8 +41,8 @@ public:
     Event() = default;
 
     Event(int id, string name, Category category, Date date,
-          TicketTypePriceQuantity vipTickets, TicketTypePriceQuantity economicTickets,
-          TicketTypePriceQuantity regularTickets) {
+        TicketTypePriceQuantity vipTickets, TicketTypePriceQuantity economicTickets,
+        TicketTypePriceQuantity regularTickets) {
         this->id = id;
         this->name = name;
         this->category = category;

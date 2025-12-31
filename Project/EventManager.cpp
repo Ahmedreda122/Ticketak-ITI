@@ -23,12 +23,26 @@ public:
         return instance;
     }
 
-    void addEvent(const Event& e) {
+    void addEvent(Event& e) {
+        if (e.getId() == 0)
+            e.setId(events.size() + 1);
         events.push_back(e);
+    }
+
+    bool deleteEvent(int eventId){
+        auto it = remove_if(events.begin(), events.end(),
+            [eventId](Event& e){ return e.getId() == eventId; });
+        if(it != events.end()){
+            events.erase(it, events.end());
+            return true;
+        }
+        return false;
     }
 
     vector<Event>& getEvents() { return events; }
     const vector<Event>& getEvents() const { return events; }
+
+    const int getNEvents() const { return events.size(); }
 
     Event* getEvent(int ID) {
         auto it = find_if(events.begin(), events.end(),

@@ -408,7 +408,7 @@ public:
             if (!errC) {
                 EventManager::getInstance().addEvent(event);
                 system("cls");
-                cout << "Event is created successfully";
+                cout << "Event #" << EventManager::getInstance().getNEvents() << " is created successfully";
                 Sleep(2000);
                 return true;
             }
@@ -461,7 +461,7 @@ public:
 
             if (!errC) {
                 system("cls");
-                cout << "Event is edited successfully";
+                cout << "Event #" << event->getId() << " is edited successfully";
                 Sleep(2000);
                 return true;
             }
@@ -636,6 +636,20 @@ public:
                     viewEditEventForm(e);
                     break;
                 }
+                case 3: {
+                    Event *e = getEventIdFromUser();
+                    if (e == nullptr) break;
+                    int eventID = e->getId();
+                    if (EventManager::getInstance().deleteEvent(eventID)){
+                        system("cls");
+                        cout << "Event #"<< eventID << " is deleted successfully";
+                        Sleep(1500);
+                    }
+                }
+                case 4:{
+                    viewEvents(EventManager::getInstance().getEvents(),"====== All Events ======");
+                    break;
+                }
                 case 5:
                     searchMenu();
                     break;
@@ -729,24 +743,28 @@ public:
             }
 
             if (exit) continue;
+            
+            viewEvents(matchedEvents, "Search Results");
+        }
+    }
 
-            if (!matchedEvents.empty()) {
-                vector<string> eventsMenu;
-                getEventsMenu(eventsMenu, matchedEvents);
+    void viewEvents(const vector<Event>& events,const string& menuMsg){
+        if (!events.empty()) {
+            vector<string> eventsMenu;
+            getEventsMenu(eventsMenu, events);
 
-                while (true) {
-                    int selectedEventIndex = displayMenu(eventsMenu, "Search Results");
-                
-                    // Back to Search Menu
-                    if (selectedEventIndex == -1){
-                        break;
-                    }
-    
-                    displayMenu(vector<string>(), "====== Event Details ======",
-                        matchedEvents[selectedEventIndex - 1].viewDetails(),
-                        "", 14
-                    );
+            while (true) {
+                int selectedEventIndex = displayMenu(eventsMenu, menuMsg);
+            
+                // Back to Search Menu
+                if (selectedEventIndex == -1){
+                    break;
                 }
+
+                displayMenu(vector<string>(), "====== Event Details ======",
+                    events[selectedEventIndex - 1].viewDetails(),
+                    "", 14
+                );
             }
         }
     }
@@ -975,12 +993,12 @@ void SystemManager::run() {
                     // Returning to main menu
                     case -1:
                         break;
-                        // Fan Logs in
+                    // Fan Logs in
                     case 1: {
                         viewFanMenu();
                         break;
                     }
-                        // Admin Logs in
+                    // Admin Logs in
                     case 2: {
                         viewAdminMenu();
                         break;

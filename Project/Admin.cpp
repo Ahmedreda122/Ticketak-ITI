@@ -22,21 +22,22 @@ public:
     void setId(int _id) { id = _id; }
     int getId() const { return id; }
 
-    bool createEvent(const Event& e){
+    bool createEvent(Event& e){
         EventManager::getInstance().addEvent(e);
         return true;
     }
 
-    bool deleteEvent(int eventId){
-        auto& events = EventManager::getInstance().getEvents();
-        auto it = remove_if(events.begin(), events.end(),
-            [eventId](Event& e){ return e.getId() == eventId; });
-        if(it != events.end()){
-            events.erase(it, events.end());
-            return true;
-        }
-        return false;
-    }
+    // Moved to Event Manager
+    // bool deleteEvent(int eventId){
+    //     auto& events = EventManager::getInstance().getEvents();
+    //     auto it = remove_if(events.begin(), events.end(),
+    //         [eventId](Event& e){ return e.getId() == eventId; });
+    //     if(it != events.end()){
+    //         events.erase(it, events.end());
+    //         return true;
+    //     }
+    //     return false;
+    // }
 
     void viewAllEvents(){
         const auto& events = EventManager::getInstance().getEvents();
