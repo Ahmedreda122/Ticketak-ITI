@@ -422,28 +422,25 @@ public:
         vector<Field> fields(eventFields.begin(), eventFields.end());
         string error;
         int errC = 0;
+        Event event;
+        
         while (true) {
-            Event event;
-
-            // call category menu
             Category selectedCategory = getCategoryFromUser("Select Category for New Event");
-            event.setCategory(selectedCategory);
+            // if (selectedCategory == -1) return false;
+            while (true) {
+                if (!showForm(&event, fields, error, errC, 30))
+                    break;
 
-            if (!showForm(&event, fields, error, errC, 30))
-                return false;
-
-            errC = event.isValid(error);
-
-            if (!errC) {
-
-                // set category
-                event.setId(EventManager::getInstance().getNEvents() + 1);
-                EventManager::getInstance().addEvent(event);
-
-                system("cls");
-                cout << "Event #" << EventManager::getInstance().getNEvents() << " is created successfully";
-                Sleep(2000);
-                return true;
+                error = "";
+                errC = event.isValid(error);
+                if (!errC) {
+                    event.setCategory(selectedCategory);
+                    EventManager::getInstance().addEvent(event);
+                    system("cls");
+                    cout << "Event #" << EventManager::getInstance().getNEvents() << " is created successfully";
+                    Sleep(2000);
+                    return true;
+                } 
             }
         }
     }
@@ -769,16 +766,15 @@ public:
                     break;
                 }
                 case 2: {
-
                     // Make Function to return Category => categoryMenu()
                     Category selectedCategory = getCategoryFromUser("Select Category to Search");
 
                     //Check if user pressed ESC
                     if (selectedCategory == Category::Other && choice == -1)
-                        {
-                            exit = true;
-                            break;
-                        }
+                    {
+                        exit = true;
+                        break;
+                    }
 
                     if (choice == -1) {exit = true; break;}
                     matchedEvents = searchEventsByCategory(selectedCategory);
