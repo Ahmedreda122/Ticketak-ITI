@@ -32,25 +32,21 @@ private:
 public:
     Ticket() : Ticket("0", 0, 0, TicketTypePrice{TicketType::Economic, 0}) {}
 
-    Ticket(string id, int eventId, int fanId,TicketTypePrice typePrice)
-    {
+    Ticket(string id, int eventId, int fanId,TicketTypePrice typePrice){
         this->id = id;
         this-> eventId = eventId;
         this->fanId = fanId;
         this->typePrice = typePrice;
         status = TicketStatus::Available;
     }
-    void changeStatus(TicketStatus status)
-    {
-        this->status = status;
-    }
+
     string getId() {return id; }
     int getEventId() {return eventId; }
     int getFanId() {return fanId; }
     double getPrice() { return typePrice.price; }
     TicketTypePrice getTypePrice() { return typePrice;}
-    string getType()
-    {
+
+    string getType(){
         switch (typePrice.type) {
             case TicketType::VIP:      return "VIP";
             case TicketType::Economic: return "Economic";

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <ctime>
 
 #include "Ticket.cpp"
 
@@ -14,13 +15,20 @@ enum class Category {
     Carnivals = 3,
     Other = 4
 };
+
 struct TicketTypePriceQuantity {
     TicketType type;
     double price;
     int quantity;
 };
+
 struct Date {
     int day, month, year;
+};
+
+enum class EventStatus {
+    Upcoming = 1,
+    Finished = 2
 };
 
 class Event {
@@ -30,12 +38,31 @@ private:
     Category category = Category::Other;
     int capacity;
     int availableTickets;
-    // tickets vector should be removed as we will store each ticket type and number of tickets available of it instead
+
     vector<Ticket> tickets; // Composition: Event contains Tickets
     TicketTypePriceQuantity vipTickets;
     TicketTypePriceQuantity economicTickets;
     TicketTypePriceQuantity regularTickets;
     Date date;
+
+    bool isPastDate(const Date& eventDate) const {
+        time_t t = time(nullptr);
+        tm today{};
+
+        localtime_s(&today, &t); // Windows
+        // localtime_r(&t, &today); // Linux / macOS
+
+        // Compare year
+        if (eventDate.year < today.tm_year + 1900) return true;
+        if (eventDate.year > today.tm_year + 1900) return false;
+
+        // Compare month
+        if (eventDate.month < today.tm_mon + 1) return true;
+        if (eventDate.month > today.tm_mon + 1) return false;
+
+        // Compare day
+        return eventDate.day < today.tm_mday;
+    }
 
 public:
     Event() = default;
@@ -52,71 +79,6 @@ public:
         this->regularTickets = regularTickets;
         this->capacity = vipTickets.quantity + economicTickets.quantity + regularTickets.quantity;
         availableTickets = capacity;
-    }
-
-    int isValid(string &error) {
-        int errC = 0;
-        if (name.empty()) {
-            error = "Event name cannot be empty";
-            errC++;
-        }
-
-        if (date.day < 1 || date.day > 31) {
-            if (!error.empty()) error += '\n';
-            error += "Invalid day";
-            errC++;
-        }
-
-        if (date.month < 1 || date.month > 12) {
-            if (!error.empty()) error += '\n';
-            error += "Invalid month";
-            errC++;
-        }
-
-        if (date.year < 2025) {
-            if (!error.empty()) error += '\n';
-            error += "Invalid year";
-            errC++;
-        }
-
-        if (vipTickets.quantity < 0) {
-            if (!error.empty()) error += '\n';
-            error += "VIP tickets quantity must be greater than or equal to zero";
-            errC++;
-        }
-
-        if (vipTickets.quantity > 0 && vipTickets.price <= 0) {
-            if (!error.empty()) error += '\n';
-            error += "VIP tickets price must be greater than zero";
-            errC++;
-        }
-
-        if (regularTickets.quantity < 0) {
-            if (!error.empty()) error += '\n';
-            error += "Regular tickets quantity must be greater than or equal to zero";
-            errC++;
-
-        }
-
-        if (regularTickets.quantity > 0 && regularTickets.price <= 0) {
-            if (!error.empty()) error += '\n';
-            error += "Regular tickets price must be greater than zero";
-            errC++;
-        }
-
-        if (economicTickets.quantity < 0) {
-            if (!error.empty()) error += '\n';
-            error += " Economic tickets quantity must be greater than or equal to zero";
-            errC++;
-
-        }
-        if (economicTickets.quantity > 0 && economicTickets.price <= 0) {
-            if (!error.empty()) error += '\n';
-            error += "Economic tickets price must be greater than zero";
-            errC++;
-        }
-
-        return errC;
     }
 
     const TicketTypePriceQuantity &getVipTickets() const {
@@ -218,8 +180,8 @@ public:
 
         // keep totals consistent
         capacity = vipTickets.quantity +
-                   regularTickets.quantity +
-                   economicTickets.quantity;
+                regularTickets.quantity +
+                economicTickets.quantity;
 
         availableTickets = capacity;
     }
@@ -250,6 +212,8 @@ public:
                 return "Parties";
             case Category::Carnivals:
                 return "Carnivals";
+            case Category::Other:
+                return "Other";    
             default:
                 return "Unknown";
         }
@@ -300,32 +264,36 @@ public:
 
     string viewDetails() const {
         return "  Event #" + to_string(id) + "\n  Name: " + name + "\n  Category: " + categoryToString(category) +
-               "\n  Date: " + dateToString(date) + "\n  Total Seats: " + to_string(capacity) + "\n  Available Seats: " +
-               to_string(availableTickets)
-               + "\n  VIP Ticket Price: " + to_string(vipTickets.price) + " , VIP Available Tickets: " +
-               to_string(vipTickets.quantity)
-               + "\n  Regular Ticket Price: " + to_string(regularTickets.price) + " , Regular Available Tickets: " +
-               to_string(regularTickets.quantity)
-               + "\n  Economic Ticket Price: " + to_string(economicTickets.price) + " , Economic Available Tickets: " +
-               to_string(economicTickets.quantity);
-        /*
-        cout<<"Event #"<<id<<endl;
-        cout<<"Name: "<<name<<endl;
-        cout<<"Category: "<<categoryToString(category)<<endl;
-        cout<<"Date: "<<dateToString(date)<<endl;
-        cout<<"Total Seats: "<<capacity<<endl;
-        cout<<"Available Seats: "<<availableTickets<<endl;
-        cout<<"VIP Ticket Price: "<<vipTickets.price<<" , VIP Available Tickets: "<<vipTickets.quantity<<endl;
-        cout<<"Regular Ticket Price: "<<regularTickets.price<<" , Regular Available Tickets: "<<regularTickets.quantity<<endl;
-        cout<<"Economic Ticket Price: "<<economicTickets.price<<" , Economic Available Tickets: "<<economicTickets.quantity<<endl;
-        */
+            "\n  Date: " + dateToString(date) + "\n  Total Seats: " + to_string(capacity) + "\n  Available Seats: " +
+            to_string(availableTickets) + "\n  Event Status: " + eventStatustoStr(getEventStatus()) 
+            + "\n  VIP Ticket Price: " + to_string(vipTickets.price) + " , VIP Available Tickets: " +
+            to_string(vipTickets.quantity)
+            + "\n  Regular Ticket Price: " + to_string(regularTickets.price) + " , Regular Available Tickets: " +
+            to_string(regularTickets.quantity)
+            + "\n  Economic Ticket Price: " + to_string(economicTickets.price) + " , Economic Available Tickets: " +
+            to_string(economicTickets.quantity);
     }
 
-    string getEventStatus();
+    EventStatus getEventStatus() const {
+        return isPastDate(date)
+            ? EventStatus::Finished
+            : EventStatus::Upcoming;
+    }
+
+    string eventStatustoStr(const EventStatus& eventStatus) const {
+        switch (eventStatus) {
+            case EventStatus::Upcoming:
+                return "Upcoming";
+            case EventStatus::Finished:
+                return "Finished";
+            default:
+                return "Unknown";
+        }
+    }
 
     void expireTickets() {
         for (int i = 0; i < tickets.size(); i++) {
-            tickets[i].changeStatus(TicketStatus::Expired);
+            tickets[i].setTicketStatus(TicketStatus::Expired);
         }
     }
 

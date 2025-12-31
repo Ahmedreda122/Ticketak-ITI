@@ -25,7 +25,6 @@ enum class UserType {
 enum class EventFieldId {
     Name,
     Category,
-    //Capacity,
 
     DateDay,
     DateMonth,
@@ -73,19 +72,84 @@ public:
     static bool isValidUserName(const string &userName) {
         // User name should contain 4 to 20 characters
         return (userName.size() <= 20 && userName.size() >= 3);
-        // {
-        //     // Return false if bigger than 20 or lower than 4
-        //     return false;
-        // }
-
-        // // A Standard form for username
-        // regex stdUserName("([0-9_]*[a-zA-Z]+[_0-9]*[a-zA-Z]+[0-9_]*)");
-        // // If the user's username following the regex form return true, false otherwise
-        // return regex_match(userName, stdUserName);
     }
 
     static bool isValidPassword(const string &password) {
         return (password.size() >= 8);
+    }
+
+    static int isValidEvent(Event& e,string &error) {
+        int errC = 0;
+        if (e.getName().empty()) {
+            error = "Event name cannot be empty";
+            errC++;
+        }
+        
+        if (e.getDay() < 1 || e.getDay() > 31) {
+            if (!error.empty()) error += '\n';
+            error += "Invalid day";
+            errC++;
+        }
+        
+        if (e.getMonth() < 1 || e.getMonth() > 12) {
+            if (!error.empty()) error += '\n';
+            error += "Invalid month";
+            errC++;
+        }
+        
+        if (e.getYear() < 2025) {
+            if (!error.empty()) error += '\n';
+            error += "Invalid year";
+            errC++;
+        }
+
+        if (e.getEventStatus() == EventStatus::Finished) {
+            if (!error.empty()) error += '\n';
+            error += "Date Shouldn't be in the past";
+            errC++;
+        }
+
+        const auto& vipTickets = e.getVipTickets();
+        if (vipTickets.quantity < 0) {
+            if (!error.empty()) error += '\n';
+            error += "VIP tickets quantity must be greater than or equal to zero";
+            errC++;
+        }
+
+        if (vipTickets.quantity > 0 && vipTickets.price <= 0) {
+            if (!error.empty()) error += '\n';
+            error += "VIP tickets price must be greater than zero";
+            errC++;
+        }
+
+        const auto& regularTickets = e.getRegularTickets();
+        if (regularTickets.quantity < 0) {
+            if (!error.empty()) error += '\n';
+            error += "Regular tickets quantity must be greater than or equal to zero";
+            errC++;
+
+        }
+
+        if (regularTickets.quantity > 0 && regularTickets.price <= 0) {
+            if (!error.empty()) error += '\n';
+            error += "Regular tickets price must be greater than zero";
+            errC++;
+        }
+
+        const auto& economicTickets = e.getEconomicTickets();
+        if (economicTickets.quantity < 0) {
+            if (!error.empty()) error += '\n';
+            error += " Economic tickets quantity must be greater than or equal to zero";
+            errC++;
+
+        }
+        if (economicTickets.quantity > 0 && economicTickets.price <= 0) {
+            if (!error.empty()) error += '\n';
+            error += "Economic tickets price must be greater than zero";
+            errC++;
+        }
+
+        return errC;
     }
 };
 
@@ -183,14 +247,14 @@ public:
 // ================= SYSTEM MANAGER (FACADE) =================
 
 class SystemManager {
+public:
+    void run(); // Main loop
+
 private:
     Admin *currentAdmin = nullptr;
     Fan *currentFan = nullptr;
     UserType userType = UserType::NotAuth;
     const string EMAIL_ALLOWED_CHARS = "A-Za-z0-9_@.%+-";
-
-public:
-    void run(); // Main loop
 
     // Make current Admin Points at an Admin returned from Login Method (AdminManager.admins vector)
     void setCurrentAdmin(Admin &admin) {
@@ -348,7 +412,7 @@ public:
     }
 
     //function to display category menu and get user selection
-    Category getCategoryFromUser(const string& prompt = "Choose Event Category", Category defaultCategory = Category::Other) {
+    Category getCategoryFromUser(const string& prompt = "Choose Event Category") {
         vector<string> categories = {
             "1- Sports\n",
             "2- Parties\n",
@@ -365,11 +429,6 @@ public:
         );
 
         // If user presses ESC, return -1 cast to Category to signal ESC press
-        if (choice == -1)
-{
-            return static_cast<Category>(-1);
-        }
-
         return static_cast<Category>(choice);
     }
 
@@ -436,13 +495,13 @@ public:
                     break;
 
                 error = "";
-                errC = event.isValid(error);
+                errC = ValidationService::isValidEvent(event, error);
                 if (!errC) {
                     event.setCategory(selectedCategory);
                     EventManager::getInstance().addEvent(event);
                     system("cls");
                     cout << "Event #" << EventManager::getInstance().getNEvents() << " is created successfully";
-                    Sleep(2000);
+                    Sleep(1500);
                     return true;
                 }
             }
@@ -480,37 +539,31 @@ public:
         vector<EventField> &eventFields = createEventFormFields();
         string error;
         int errC = 0;
+
         while (true) {
-            // call => parameter old category
             Category currentCategory = event->getCategory();
-            Category newCategory = getCategoryFromUser
-            (
-            "Current: " + event->categoryToString(currentCategory) + "\nSelect new category or ESC to keep",
-            currentCategory
-            );
-            event->setCategory(newCategory);
 
-            fillEditEventData(eventFields, *event);
-
-            vector<Field> fields(
-                    eventFields.begin(),
-                    eventFields.end()
+            Category newCategory = getCategoryFromUser(
+                "Current: " + event->categoryToString(currentCategory) + "\nSelect new category or ESC to keep"
             );
 
             if (newCategory == static_cast<Category>(-1)) return false;
 
-            while(true)
-            {
+            event->setCategory(newCategory);
+
+            fillEditEventData(eventFields, *event);
+            vector<Field> fields(eventFields.begin(), eventFields.end());
+
+            while(true){
                 if (!showForm(event, fields, error, errC, 30))
                     break;
 
-                errC = event->isValid(error);
-
+                errC = ValidationService::isValidEvent(*event, error);
                 if (!errC) {
                     // set
                     system("cls");
                     cout << "Event #" << event->getId() << " is edited successfully";
-                    Sleep(2000);
+                    Sleep(1500);
                     return true;
                 }
             }
@@ -523,7 +576,8 @@ public:
         }
     }
 
-    int viewEventsPage() {
+    // View Events Page to Fan to purchase
+    int viewEventsForPurchase() {
         EventManager &eventManager = EventManager::getInstance();
         vector<string> eventsMenu;
         const vector<Event>& events = eventManager.getEvents();
@@ -548,13 +602,19 @@ public:
                     "Choose your ticket type",
                     "Event details",
                     events[selectedEvent - 1].viewDetails(),
-                    15
+                    17
                 );
 
                 // if user clicks ESC
                 if (selectedTicketType == -1){
                     break;
                 }
+
+                if (events[selectedEvent-1].getEventStatus() == EventStatus::Finished) {
+                    displayMenu(vector<string>(), "Sorry, This Event is already Finished\n");
+                    continue;
+                }
+
                 // navigate to purchase page
                 TicketTypePrice selectedTicketTypePrice;
                 switch (selectedTicketType) {
@@ -571,7 +631,7 @@ public:
                         selectedTicketTypePrice.price = events[selectedEvent-1].getRegularTickets().price;
                         break;
                 }
-
+                
                 if (!purchasePage(events[selectedEvent-1].getId(), selectedTicketTypePrice)) {
                     continue;
                 }
@@ -650,14 +710,14 @@ public:
         Ticket createdTicket = event->bookEvent(currentFan->getId(), selectedTicketTypePrice);
         // case booking is failed
         if (createdTicket.getId() == "0") {
-            display(43, "Unavailable tickets please try again later.", 43, 0, 2, 50);
+            displayMenu(vector<string>(), "Unavailable tickets please try again later.");
             return false;
         }
         // Add created ticket to current fan tickets
         currentFan->buyTicket(createdTicket);
         system("cls");
-        cout << "Payment is Completed Successfully, Backing to Main Menu in 2 Sec.";
-        Sleep(2000);
+        cout << "Payment is Completed Successfully, Backing to Main Menu in 1 Sec.";
+        Sleep(1200);
         return true;
     }
 
@@ -742,7 +802,7 @@ public:
 
             string ticketDetails = currentFan->getTicketDetails(choice - 1);
 
-            displayMenu(vector<string>(), ticketDetails, "", "", 8);
+            displayMenu(vector<string>(), "", ticketDetails, "", 11);
             return 0;
         }
         return 0;
@@ -812,6 +872,7 @@ public:
         }
     }
 
+    // View Passed Events
     void viewEvents(const vector<Event>& events,const string& menuMsg){
         if (!events.empty()) {
             vector<string> eventsMenu;
@@ -827,7 +888,7 @@ public:
 
                 displayMenu(vector<string>(), "====== Event Details ======",
                     events[selectedEventIndex - 1].viewDetails(),
-                    "", 14
+                    "", 16
                 );
             }
         }
@@ -854,7 +915,7 @@ public:
 
             switch (choice) {
             case 1:
-                viewEventsPage();
+                viewEventsForPurchase();
                 break;
             case 2:
                 viewMyTicketsPage();
@@ -966,7 +1027,7 @@ public:
         bool abortLoginFormFill = false;
         do {
             // Choosing User Type Menu
-            int user_type = displayMenu(vector<string>{"1-Fan\n", "2-Admin\n"}, "You want sign in as");
+            int user_type = displayMenu(vector<string>{"1- Fan\n", "2- Admin\n"}, "You want sign in as");
             // if user Press on ESC to back to main menu
             if (user_type == -1) { return -1; }
 
@@ -1106,15 +1167,15 @@ int main() {
         TicketTypePriceQuantity vip3{TicketType::VIP, 800.0, 40};
         TicketTypePriceQuantity eco3{TicketType::Economic, 300.0, 120};
         TicketTypePriceQuantity reg3{TicketType::Regular, 120.0, 250};
-        Date date3{20, 12, 2026};
+        Date date3{20, 12, 2025};
 
         Event event1(1, "Rock Concert", Category::Parties, date1, vip1, eco1, reg1);
         Event event2(2, "Football Match", Category::Sports, date2, vip2, eco2, reg2);
         Event event3(3, "City Carnival", Category::Carnivals, date3, vip3, eco3, reg3);
 
-        eventManager.addEvent(event3);
         eventManager.addEvent(event1);
         eventManager.addEvent(event2);
+        eventManager.addEvent(event3);
     }
 
     SystemManager app;

@@ -9,7 +9,7 @@ using namespace std;
 
 class Fan : public User {
 private:
-    int id;
+    int id = 0;
     vector<Ticket> myTickets;
 
 public:

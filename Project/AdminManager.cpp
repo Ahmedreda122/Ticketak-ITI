@@ -34,9 +34,9 @@ public:
 
     Admin *getAdminByEmail(string email) {
         auto it = find_if(admins.begin(), admins.end(),
-                          [email](Admin &admin) {
-                              return (admin.getEmail() == email);
-                          }
+                        [email](Admin &admin) {
+                            return (admin.getEmail() == email);
+                        }
         );
 
         if (it != admins.end())
@@ -47,9 +47,9 @@ public:
 
     Admin *getAdminByEmailPass(string email, string password) {
         auto it = find_if(admins.begin(), admins.end(),
-                          [email, password](Admin &admin) {
-                              return (admin.getEmail() == email && admin.getPassword() == password);
-                          }
+                        [email, password](Admin &admin) {
+                            return (admin.getEmail() == email && admin.getPassword() == password);
+                        }
         );
 
         if (it != admins.end())
