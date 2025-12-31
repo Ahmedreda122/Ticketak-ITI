@@ -254,57 +254,6 @@ void display(int nChar, char* str, int cursor, int xPos, int yPos, int len){
     gotoxy(cursor + xPos, yPos);
 }
 
-// int displayMenu(const vector<string>& menu, const string& MenuTitle){
-//     const int nOption = menu.size();
-//     bool abort = false;
-//     int selected = 0;
-//     do{
-//         system("cls");
-//         cout << "\n" << MenuTitle << "\n";
-//         gotoxy(0, nOption*2 + 3);
-//         cout << "Press ESC to back.";
-
-//         for(int i = 0; i < nOption; ++i){
-//             gotoxy(2, 3+i*2);
-//             if (i == selected){
-//                 textattr(0x070);
-//             } else {
-//                 textattr(0x007);
-//             }
-//             cout << menu[i];
-//         }
-//         textattr(0x007); // reset colors
-//         char ch = getch();
-//         switch(ch){
-//         case -32:{
-//             ch = getch();
-//             switch(ch){
-//             case 72: // Up Arrow
-//                 selected = (selected - 1 + nOption) % nOption;
-//                 break;
-//             case 80: // Down Arrow
-//                 selected = (selected + 1) % nOption;
-//                 break;
-//             case 71: // Home Key
-//                 selected = 0;
-//                 break;
-//             case 79: // End Key
-//                 selected = nOption - 1;
-//                 break;
-//             }
-//             break;
-//         }
-//         case 27: // Esc Key
-//             return -1;
-//         case '\r':// Enter
-//             return (selected + 1);
-//         }
-//     } while(!abort);
-
-//     return -1;
-// }
-
-
 int displayMenu(const vector<string>& menu, const string& MenuTitle,const string& MenuDescriptionTitle ,  const string& MenuDescription,int YPositionOfESC){
     const int nOption = menu.size();
     bool abort = false;
