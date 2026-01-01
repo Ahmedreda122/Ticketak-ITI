@@ -23,12 +23,12 @@ public:
         myTickets.push_back(myTicket);
     }
 
-    vector<Ticket> viewMyTickets()
+    vector<Ticket> getMyTickets() const
     {
         return myTickets;
     }
 
-    vector<string> getTicketsMenuItems()
+    vector<string> buildTicketsMenuItems()
     {
         vector<string> ticketItems;
 
@@ -37,11 +37,24 @@ public:
             return ticketItems;
         }
 
+        auto& eventManager = EventManager::getInstance();
         // Create a menu item for each ticket
         for (size_t i = 0; i < myTickets.size(); i++) {
-            string item = to_string(i + 1) + "- Ticket ID: " + myTickets[i].getId()
-                        + " | Type: " + myTickets[i].getType()
-                        + " | Price: " + to_string(myTickets[i].getPrice()) + "\n";
+            Ticket& currTicket = myTickets[i];
+
+            // Update Ticket Status if Needed
+            if (currTicket.getTicketStatus() != TicketStatus::Expired){
+                Event* e = eventManager.getEvent(currTicket.getEventId());
+                if (e && e->getEventStatus() == EventStatus::Finished) { e->expireTickets(); }   
+            }
+
+            string item =
+                to_string(i + 1) + "- Ticket ID: " + currTicket.getId() +
+                " | Type: " + currTicket.getType() +
+                " | Price: " + to_string(currTicket.getPrice()) +
+                " | Status: " + currTicket.getTicketStatusStr() +
+                "\n";
+
             ticketItems.push_back(item);
         }
 
@@ -60,6 +73,7 @@ public:
         details += "Event ID: " + to_string(t.getEventId()) + "\n";
         details += "Type: " + t.getType() + "\n";
         details += "Price: " + to_string(t.getPrice()) + " EGP\n";
+        details += "Status: " + t.getTicketStatusStr() + "\n";
         details += "===================================\n";
 
         return details;

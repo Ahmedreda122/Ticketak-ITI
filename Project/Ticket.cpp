@@ -44,6 +44,21 @@ public:
     int getEventId() {return eventId; }
     int getFanId() {return fanId; }
     double getPrice() { return typePrice.price; }
+    TicketStatus getTicketStatus() const { return status; }
+    
+    string getTicketStatusStr() const { 
+        switch(status) {
+            case (TicketStatus::Available):
+                return "Available";
+            case (TicketStatus::Reserved):
+                return "Reserved";
+            case (TicketStatus::Expired):
+                return "Expired";
+            default: 
+                return "Unknown";            
+        }
+    }
+
     TicketTypePrice getTypePrice() { return typePrice;}
 
     string getType(){

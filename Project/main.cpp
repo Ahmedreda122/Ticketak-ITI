@@ -780,9 +780,9 @@ private:
     int viewMyTicketsPage() {
         if (!currentFan) return -1;
 
-        vector<string> ticketOptions = currentFan->getTicketsMenuItems();
+        vector<string> ticketOptions = currentFan->buildTicketsMenuItems();
 
-        if (ticketOptions.size() == 1 && currentFan->viewMyTickets().empty()) {
+        if (ticketOptions.size() == 1 && currentFan->getMyTickets().empty()) {
             displayMenu(ticketOptions, "====== My Tickets ======");
             return 0;
         }
@@ -802,9 +802,8 @@ private:
 
             string ticketDetails = currentFan->getTicketDetails(choice - 1);
 
-            if(displayMenu(vector<string>(), ticketDetails, "", "", 8) == -1)
-            {
-             continue;
+            if (displayMenu(vector<string>(), "", ticketDetails, "", 12) == -1){
+                continue;
             }
             return 0;
         }
